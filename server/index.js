@@ -3,7 +3,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
+const authRouter = require('./routes/auth');
 const transactionsRouter = require('./routes/transactions');
+const budgetsRouter = require('./routes/budgets');
 
 const app = express();
 
@@ -11,8 +13,10 @@ const app = express();
 app.use(cors());
 app.use(express.json()); // Parseo de JSON en el body
 
-// Ruta base de la API
+// Rutas de API
+app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/transactions', transactionsRouter);
+app.use('/api/v1/budgets', budgetsRouter);
 
 // Ruta simple de salud
 app.get('/', (req, res) => {

@@ -2,7 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-slate-950;
+html {
+  color-scheme: light;
 }
 
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors;
+}
+
+/* Estilos adicionales para modo oscuro */
+@layer components {
+  .dark input,
+  .dark select,
+  .dark textarea {
+    @apply bg-slate-800 text-white border-slate-700;
+  }
+
+  .dark input::placeholder {
+    @apply text-slate-400;
+  }
+
+  .dark button {
+    @apply dark:border-slate-700;
+  }
+}

@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 
 const TransactionSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'El ID de usuario es obligatorio'],
+    },
     text: {
       type: String,
       required: [true, 'El texto es obligatorio'],

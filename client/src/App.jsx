@@ -1,114 +1,259 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import axios from 'axios';
-import Header from './components/Header';
-import IncomeExpenses from './components/IncomeExpenses';
-import TransactionList from './components/TransactionList';
-import AddTransaction from './components/AddTransaction';
-import ExpensesChart from './components/ExpensesChart';
+import Auth from './components/Auth';
+import Navbar from './components/Navbar';
+import Dashboard from './components/Dashboard';
+import TransactionsPage from './components/TransactionsPage';
+import BudgetsPage from './components/BudgetsPage';
+import AnalyticsPage from './components/AnalyticsPage';
 
-// URL base de la API (ajusta si cambias el puerto/backend)
 const API_URL = 'http://localhost:5000/api/v1/transactions';
 
 function App() {
+  const [user, setUser] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentSection, setCurrentSection] = useState('dashboard');
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    pages: 0,
+  });
+  const [filters, setFilters] = useState({
+    searchText: '',
+    category: '',
+    minAmount: '',
+    maxAmount: '',
+    startDate: '',
+    endDate: '',
+  });
 
-  // Cargar transacciones al montar
+  const debounceTimeoutRef = useRef(null);
+
+  // Cargar usuario guardado
   useEffect(() => {
-    const fetchTransactions = async () => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
       try {
-        const res = await axios.get(API_URL);
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.error('Error parsing saved user:', e);
+      }
+    }
+  }, []);
+
+  // Cargar transacciones
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    debounceTimeoutRef.current = setTimeout(async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+
+        const params = new URLSearchParams();
+        if (filters.searchText) params.append('searchText', filters.searchText);
+        if (filters.category) params.append('category', filters.category);
+        if (filters.minAmount) params.append('minAmount', filters.minAmount);
+        if (filters.maxAmount) params.append('maxAmount', filters.maxAmount);
+        if (filters.startDate) params.append('startDate', filters.startDate);
+        if (filters.endDate) params.append('endDate', filters.endDate);
+        params.append('page', pagination.page);
+        params.append('limit', pagination.limit);
+
+        const res = await axios.get(`${API_URL}?${params.toString()}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
         setTransactions(res.data.data || []);
+        setPagination({
+          page: res.data.page,
+          limit: res.data.limit,
+          total: res.data.total,
+          pages: res.data.pages,
+        });
+        setError(null);
       } catch (err) {
-        console.error(err);
-        setError('No se pudieron cargar las transacciones.');
+        console.error('Error fetching transactions:', err);
+        if (err.response?.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setUser(null);
+          setError('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+        } else {
+          setError('No se pudieron cargar las transacciones.');
+        }
       } finally {
         setLoading(false);
       }
+    }, 500);
+
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
     };
+  }, [user, filters, pagination.page, pagination.limit]);
 
-    fetchTransactions();
-  }, []);
-
-  // Cálculos derivados (memoizados para evitar recomputar en cada render)
+  // Calcular balance
   const { balance, income, expense } = useMemo(() => {
-    const amounts = transactions.map((t) => t.amount);
-
-    const total = amounts.reduce((acc, item) => acc + item, 0);
-    const inc = amounts
-      .filter((item) => item > 0)
-      .reduce((acc, item) => acc + item, 0);
-    const exp = amounts
-      .filter((item) => item < 0)
-      .reduce((acc, item) => acc + item, 0);
-
+    const inc = transactions
+      .filter((t) => t.amount > 0)
+      .reduce((sum, t) => sum + t.amount, 0);
+    const exp = transactions
+      .filter((t) => t.amount < 0)
+      .reduce((sum, t) => sum + t.amount, 0);
     return {
-      balance: total,
+      balance: inc + exp,
       income: inc,
-      expense: Math.abs(exp), // gasto positivo para mostrar
+      expense: Math.abs(exp),
     };
   }, [transactions]);
 
-  // Handler para agregar transacción
+  // Handlers
   const addTransaction = async (transactionData) => {
     try {
-      const res = await axios.post(API_URL, transactionData);
-      // Agregamos la nueva transacción al inicio de la lista
+      const token = localStorage.getItem('token');
+      const res = await axios.post(API_URL, transactionData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setTransactions((prev) => [res.data.data, ...prev]);
+      setError(null);
     } catch (err) {
-      console.error(err);
+      console.error('Error adding transaction:', err);
       setError('No se pudo agregar la transacción.');
     }
   };
 
-  // Handler para eliminar transacción
+  const updateTransaction = async (id, transactionData) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.put(`${API_URL}/${id}`, transactionData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTransactions((prev) =>
+        prev.map((t) => (t._id === id ? res.data.data : t))
+      );
+      setError(null);
+    } catch (err) {
+      console.error('Error updating transaction:', err);
+      setError('No se pudo actualizar la transacción.');
+    }
+  };
+
   const deleteTransaction = async (id) => {
     try {
-      await axios.delete(`${API_URL}/${id}`);
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setTransactions((prev) => prev.filter((t) => t._id !== id));
+      setError(null);
     } catch (err) {
-      console.error(err);
+      console.error('Error deleting transaction:', err);
       setError('No se pudo eliminar la transacción.');
     }
   };
 
-  return (
-    <div className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center px-4 py-6">
-      <div className="w-full max-w-3xl bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-800 p-6 md:p-8">
-        <Header balance={balance} />
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setTransactions([]);
+    setPagination({ page: 1, limit: 20, total: 0, pages: 0 });
+    setFilters({
+      searchText: '',
+      category: '',
+      minAmount: '',
+      maxAmount: '',
+      startDate: '',
+      endDate: '',
+    });
+  };
 
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+  };
+
+  const handlePageChange = (newPage) => {
+    setPagination((prev) => ({ ...prev, page: newPage }));
+  };
+
+  const handleLimitChange = (newLimit) => {
+    setPagination({
+      page: 1,
+      limit: newLimit,
+      total: pagination.total,
+      pages: Math.ceil(pagination.total / newLimit),
+    });
+  };
+
+  // Si no está autenticado, mostrar login
+  if (!user) {
+    return <Auth onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors">
+      {/* Navbar */}
+      <Navbar
+        user={user}
+        currentSection={currentSection}
+        onSectionChange={setCurrentSection}
+        onLogout={handleLogout}
+      />
+
+      {/* Contenido Principal */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (
-          <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 text-red-300 px-4 py-2 text-sm">
+          <div className="mb-6 rounded-lg border border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300 px-4 py-3">
             {error}
           </div>
         )}
 
-        {loading ? (
-          <div className="text-center py-10 text-slate-400">Cargando...</div>
-        ) : (
-          <>
-            <IncomeExpenses income={income} expense={expense} />
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
-              <div>
-                <AddTransaction onAdd={addTransaction} />
-              </div>
-              <div>
-                <ExpensesChart transactions={transactions} />
-              </div>
-            </div>
-
-            <TransactionList
-              transactions={transactions}
-              onDelete={deleteTransaction}
-            />
-          </>
+        {currentSection === 'dashboard' && (
+          <Dashboard
+            transactions={transactions}
+            income={income}
+            expense={expense}
+            balance={balance}
+          />
         )}
-      </div>
+
+        {currentSection === 'transactions' && (
+          <TransactionsPage
+            transactions={transactions}
+            filters={filters}
+            onFiltersChange={setFilters}
+            onAdd={addTransaction}
+            onDelete={deleteTransaction}
+            onUpdate={updateTransaction}
+            pagination={pagination}
+            onPageChange={handlePageChange}
+            onLimitChange={handleLimitChange}
+            loading={loading}
+          />
+        )}
+
+        {currentSection === 'budgets' && (
+          <BudgetsPage token={localStorage.getItem('token')} />
+        )}
+
+        {currentSection === 'analytics' && (
+          <AnalyticsPage transactions={transactions} />
+        )}
+      </main>
     </div>
   );
 }
 
 export default App;
-
