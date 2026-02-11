@@ -1,7 +1,8 @@
+
 import { useEffect, useState, useMemo, useRef } from 'react';
 import axios from 'axios';
 import Auth from './components/Auth';
-import Navbar from './components/Navbar';
+import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import TransactionsPage from './components/TransactionsPage';
 import BudgetsPage from './components/BudgetsPage';
@@ -203,56 +204,50 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 transition-colors">
-      {/* Navbar */}
-      <Navbar
-        user={user}
-        currentSection={currentSection}
-        onSectionChange={setCurrentSection}
-        onLogout={handleLogout}
-      />
+    <Layout
+      user={user}
+      currentSection={currentSection}
+      onSectionChange={setCurrentSection}
+      onLogout={handleLogout}
+    >
+      {error && (
+        <div className="mb-6 rounded-lg border border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300 px-4 py-3">
+          {error}
+        </div>
+      )}
 
-      {/* Contenido Principal */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {error && (
-          <div className="mb-6 rounded-lg border border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300 px-4 py-3">
-            {error}
-          </div>
-        )}
+      {currentSection === 'dashboard' && (
+        <Dashboard
+          transactions={transactions}
+          income={income}
+          expense={expense}
+          balance={balance}
+        />
+      )}
 
-        {currentSection === 'dashboard' && (
-          <Dashboard
-            transactions={transactions}
-            income={income}
-            expense={expense}
-            balance={balance}
-          />
-        )}
+      {currentSection === 'transactions' && (
+        <TransactionsPage
+          transactions={transactions}
+          filters={filters}
+          onFiltersChange={setFilters}
+          onAdd={addTransaction}
+          onDelete={deleteTransaction}
+          onUpdate={updateTransaction}
+          pagination={pagination}
+          onPageChange={handlePageChange}
+          onLimitChange={handleLimitChange}
+          loading={loading}
+        />
+      )}
 
-        {currentSection === 'transactions' && (
-          <TransactionsPage
-            transactions={transactions}
-            filters={filters}
-            onFiltersChange={setFilters}
-            onAdd={addTransaction}
-            onDelete={deleteTransaction}
-            onUpdate={updateTransaction}
-            pagination={pagination}
-            onPageChange={handlePageChange}
-            onLimitChange={handleLimitChange}
-            loading={loading}
-          />
-        )}
+      {currentSection === 'budgets' && (
+        <BudgetsPage token={localStorage.getItem('token')} />
+      )}
 
-        {currentSection === 'budgets' && (
-          <BudgetsPage token={localStorage.getItem('token')} />
-        )}
-
-        {currentSection === 'analytics' && (
-          <AnalyticsPage transactions={transactions} />
-        )}
-      </main>
-    </div>
+      {currentSection === 'analytics' && (
+        <AnalyticsPage transactions={transactions} />
+      )}
+    </Layout>
   );
 }
 

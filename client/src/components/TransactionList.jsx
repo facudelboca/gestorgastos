@@ -1,4 +1,6 @@
+
 import { useState } from 'react';
+import { MoreHorizontal, Edit2, Trash2, Check, X, Tag } from 'lucide-react';
 
 function TransactionList({ transactions, onDelete, onUpdate }) {
   const [editingId, setEditingId] = useState(null);
@@ -33,142 +35,123 @@ function TransactionList({ transactions, onDelete, onUpdate }) {
   };
 
   return (
-    <section className="mt-8">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold tracking-wide text-slate-300 uppercase">
-          Últimas transacciones
-        </h2>
-        <span className="text-xs text-slate-500">
-          {transactions.length} registro(s)
-        </span>
-      </div>
+    <div className="overflow-x-auto">
+      <table className="w-full text-left border-collapse">
+        <thead>
+          <tr className="border-b border-slate-200 dark:border-slate-800 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+            <th className="px-4 py-3">Date</th>
+            <th className="px-4 py-3 w-1/3">Payee / Description</th>
+            <th className="px-4 py-3">Category</th>
+            <th className="px-4 py-3 text-right">Amount</th>
+            <th className="px-4 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          {transactions.map((t) => {
+            const isEditing = editingId === t._id;
+            const positive = t.amount > 0;
+            const dateStr = t.date ? new Date(t.date).toLocaleDateString('es-ES', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            }) : '-';
 
-      <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-        {transactions.length === 0 && (
-          <p className="text-sm text-slate-500">
-            Aún no hay transacciones. Agrega la primera para comenzar.
-          </p>
-        )}
-
-        {transactions.map((t) => {
-          const positive = t.amount > 0;
-          const isEditing = editingId === t._id;
-
-          const amountFormatted = t.amount.toLocaleString('es-ES', {
-            style: 'currency',
-            currency: 'EUR',
-          });
-
-          const date = t.date ? new Date(t.date) : null;
-          const dateStr = date
-            ? date.toLocaleDateString('es-ES', {
-                day: '2-digit',
-                month: '2-digit',
-                year: '2-digit',
-              })
-            : '';
-
-          if (isEditing) {
-            return (
-              <div
-                key={t._id}
-                className="rounded-lg border border-blue-600/50 bg-slate-900/80 p-3 text-sm"
-              >
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={editData.text}
-                    onChange={(e) => handleEditChange('text', e.target.value)}
-                    placeholder="Descripción"
-                    className="w-full px-2 py-1 bg-slate-800 border border-slate-700 rounded text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <div className="grid grid-cols-3 gap-2">
-                    <input
-                      type="number"
-                      value={editData.amount}
-                      onChange={(e) =>
-                        handleEditChange('amount', parseFloat(e.target.value))
-                      }
-                      placeholder="Monto"
-                      className="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <input
-                      type="text"
-                      value={editData.category}
-                      onChange={(e) => handleEditChange('category', e.target.value)}
-                      placeholder="Categoría"
-                      className="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+            if (isEditing) {
+              return (
+                <tr key={t._id} className="bg-slate-50 dark:bg-slate-800/50">
+                  <td className="px-4 py-3">
                     <input
                       type="date"
                       value={editData.date}
                       onChange={(e) => handleEditChange('date', e.target.value)}
-                      className="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-sm"
                     />
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEditSave(t._id)}
-                      className="flex-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold transition"
-                    >
-                      ✓ Guardar
-                    </button>
-                    <button
-                      onClick={handleEditCancel}
-                      className="flex-1 px-2 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-xs font-semibold transition"
-                    >
-                      ✕ Cancelar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          }
+                  </td>
+                  <td className="px-4 py-3">
+                    <input
+                      type="text"
+                      value={editData.text}
+                      onChange={(e) => handleEditChange('text', e.target.value)}
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-sm"
+                      placeholder="Description"
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <input
+                      type="text"
+                      value={editData.category}
+                      onChange={(e) => handleEditChange('category', e.target.value)}
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-sm"
+                      placeholder="Category"
+                    />
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <input
+                      type="number"
+                      value={editData.amount}
+                      onChange={(e) => handleEditChange('amount', parseFloat(e.target.value))}
+                      className="w-32 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded px-2 py-1 text-sm text-right ml-auto"
+                      placeholder="Amount"
+                    />
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => handleEditSave(t._id)} className="p-1 text-emerald-500 hover:bg-emerald-50 rounded">
+                        <Check size={16} />
+                      </button>
+                      <button onClick={handleEditCancel} className="p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded">
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            }
 
-          return (
-            <div
-              key={t._id}
-              className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-2 text-sm hover:border-slate-700 transition-colors"
-            >
-              <div className="flex flex-col flex-1">
-                <span className="font-medium text-slate-100">{t.text}</span>
-                <div className="flex gap-2 text-xs text-slate-500 mt-0.5">
-                  <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
-                    {t.category}
+            return (
+              <tr key={t._id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                <td className="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">
+                  {dateStr}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="font-medium text-slate-900 dark:text-slate-100">
+                    {t.text}
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    <Tag size={12} />
+                    {t.category || 'Uncategorized'}
                   </span>
-                  {dateStr && <span>{dateStr}</span>}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 ml-4">
-                <span
-                  className={`font-semibold ${
-                    positive ? 'text-emerald-300' : 'text-rose-300'
-                  }`}
-                >
-                  {positive ? '+' : ''}
-                  {amountFormatted}
-                </span>
-                <button
-                  onClick={() => handleEditStart(t)}
-                  className="text-xs px-2 py-1 rounded-md border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-blue-300 transition-colors"
-                >
-                  ✎ Editar
-                </button>
-                <button
-                  onClick={() => onDelete(t._id)}
-                  className="text-xs px-2 py-1 rounded-md border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-rose-300 transition-colors"
-                >
-                  🗑 Eliminar
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
+                </td>
+                <td className={`px-4 py-3 text-right font-mono font-medium ${positive ? 'text-emerald-600' : 'text-slate-900 dark:text-slate-100'}`}>
+                  {positive ? '+' : ''}${Math.abs(t.amount).toFixed(2)}
+                </td>
+                <td className="px-4 py-3 text-right relative">
+                  <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleEditStart(t)}
+                      className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                      title="Edit"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button
+                      onClick={() => onDelete(t._id)}
+                      className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
 export default TransactionList;
-

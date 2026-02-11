@@ -11,88 +11,62 @@ const CATEGORIES = ['Comida', 'Transporte', 'Entretenimiento', 'Salud', 'Otros',
 // Datos de transacciones de prueba
 const generateTransactions = (userId) => {
   const transactions = [];
-  
-  // Generar transacciones desde hace 2 años hasta ahora
-  const startDate = new Date(2023, 0, 1); // Enero 2023
-  const endDate = new Date(); // Hoy
+  const today = new Date();
 
-  // Transacciones de ingresos (Salario y Freelance)
-  for (let d = new Date(2023, 0, 1); d <= endDate; d.setMonth(d.getMonth() + 1)) {
-    // Salario: primer día del mes, 3000-4000
+  // 1. Ingresos Fijos (Salario) - Últimos 12 meses
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
     transactions.push({
       userId,
-      text: 'Salario mensual',
-      amount: 3500 + Math.random() * 500,
+      text: 'Nómina Empresa S.A.',
+      amount: 2800.00,
       category: 'Salario',
-      date: new Date(d.getFullYear(), d.getMonth(), 1),
+      date: d,
     });
-
-    // Freelance ocasional: ~50% de probabilidad, 500-1500
-    if (Math.random() > 0.5) {
-      transactions.push({
-        userId,
-        text: 'Trabajo freelance',
-        amount: 500 + Math.random() * 1000,
-        category: 'Freelance',
-        date: new Date(d.getFullYear(), d.getMonth(), 10 + Math.floor(Math.random() * 15)),
-      });
-    }
   }
 
-  // Transacciones de gastos diarios
-  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-    // 60% de probabilidad de gasto en un día
-    if (Math.random() > 0.4) {
-      const category = CATEGORIES[Math.floor(Math.random() * (CATEGORIES.length - 2))]; // Excluye Salario y Freelance
-      const amounts = {
-        'Comida': [8, 25],
-        'Transporte': [1.5, 15],
-        'Entretenimiento': [5, 100],
-        'Salud': [20, 200],
-        'Otros': [5, 50],
-        'Casa': [50, 300],
-      };
+  // 2. Gastos Variados (Extenso para 12 meses)
+  const expenses = [
+    { text: 'Supermercado Mercadona', cat: 'Comida', min: 40, max: 150 },
+    { text: 'Restaurante El Buen Comer', cat: 'Comida', min: 20, max: 60 },
+    { text: 'Uber Trip', cat: 'Transporte', min: 10, max: 30 },
+    { text: 'Gasolinera Shell', cat: 'Transporte', min: 40, max: 70 },
+    { text: 'Netflix Suscripción', cat: 'Entretenimiento', min: 12, max: 12 },
+    { text: 'Cine Yelmo', cat: 'Entretenimiento', min: 15, max: 30 },
+    { text: 'Farmacia 24h', cat: 'Salud', min: 10, max: 50 },
+    { text: 'Gimnasio Mensual', cat: 'Salud', min: 40, max: 40 },
+    { text: 'Compra Amazon', cat: 'Otros', min: 20, max: 100 },
+    { text: 'Alquiler Piso', cat: 'Casa', min: 800, max: 800 },
+    { text: 'Factura Luz', cat: 'Casa', min: 60, max: 90 },
+    { text: 'Factura Internet', cat: 'Casa', min: 40, max: 40 },
+    { text: 'Spotify Premium', cat: 'Entretenimiento', min: 10, max: 10 },
+    { text: 'Cafetería Morning', cat: 'Comida', min: 3, max: 8 },
+  ];
 
-      const [min, max] = amounts[category] || [10, 100];
-      transactions.push({
-        userId,
-        text: `Gasto en ${category.toLowerCase()}`,
-        amount: -(min + Math.random() * (max - min)),
-        category,
-        date: d,
-      });
-    }
+  // Generar transacciones aleatorias (~20 por mes x 12 meses = 240)
+  for (let i = 0; i < 240; i++) {
+    const item = expenses[Math.floor(Math.random() * expenses.length)];
+    const daysAgo = Math.floor(Math.random() * 365);
+    const date = new Date();
+    date.setDate(date.getDate() - daysAgo);
 
-    // Ocasionalmente múltiples gastos en un mismo día
-    if (Math.random() > 0.8) {
-      const category = CATEGORIES[Math.floor(Math.random() * (CATEGORIES.length - 2))];
-      const amounts = {
-        'Comida': [8, 25],
-        'Transporte': [1.5, 15],
-        'Entretenimiento': [5, 100],
-        'Salud': [20, 200],
-        'Otros': [5, 50],
-        'Casa': [50, 300],
-      };
-
-      const [min, max] = amounts[category] || [10, 100];
-      transactions.push({
-        userId,
-        text: `Gasto adicional en ${category.toLowerCase()}`,
-        amount: -(min + Math.random() * (max - min)),
-        category,
-        date: d,
-      });
-    }
+    transactions.push({
+      userId,
+      text: item.text,
+      amount: -Number((item.min + Math.random() * (item.max - item.min)).toFixed(2)),
+      category: item.cat,
+      date: date,
+    });
   }
 
-  return transactions;
+  // Ordenar por fecha descendente
+  return transactions.sort((a, b) => b.date - a.date);
 };
 
 // Datos de presupuestos de prueba (mes actual)
 const generateBudgets = (userId) => {
   const currentMonth = new Date().toISOString().slice(0, 7);
-  
+
   return [
     { userId, category: 'Comida', limit: 300, month: currentMonth },
     { userId, category: 'Transporte', limit: 150, month: currentMonth },

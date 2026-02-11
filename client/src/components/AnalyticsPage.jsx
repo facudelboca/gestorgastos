@@ -59,6 +59,15 @@ const AnalyticsPage = ({ transactions: pageTransactions }) => {
 
   const transactionsToUse = fullTransactions && fullTransactions.length > 0 ? fullTransactions : pageTransactions;
 
+  const getDaysFromPreset = (p) => {
+    switch (p) {
+      case 'last-3-months': return 90;
+      case 'last-12-weeks': return 84;
+      case 'last-3-years': return 1095;
+      default: return 'all';
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md p-6">
@@ -68,13 +77,13 @@ const AnalyticsPage = ({ transactions: pageTransactions }) => {
           </h1>
 
           <div className="flex items-center gap-3">
-            <label className="text-sm font-medium">Presets:</label>
+            <label className="text-sm font-medium dark:text-slate-300">Rango:</label>
             <select
               value={preset}
               onChange={(e) => setPreset(e.target.value)}
-              className="px-3 py-2 rounded border"
+              className="px-3 py-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-white"
             >
-              <option value="all">Todos</option>
+              <option value="all">Histórico Completo</option>
               <option value="last-3-months">Últimos 3 meses</option>
               <option value="last-12-weeks">Últimas 12 semanas</option>
               <option value="last-3-years">Últimos 3 años</option>
@@ -85,7 +94,7 @@ const AnalyticsPage = ({ transactions: pageTransactions }) => {
         {loading && <div className="text-sm text-slate-500">Cargando datos para gráficos...</div>}
         {error && <div className="text-sm text-red-600">{error}</div>}
 
-        <AdvancedCharts transactions={transactionsToUse} preset={preset} />
+        <AdvancedCharts transactions={transactionsToUse} days={getDaysFromPreset(preset)} />
       </div>
     </div>
   );

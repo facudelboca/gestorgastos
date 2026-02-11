@@ -1,9 +1,11 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import AddTransaction from './AddTransaction';
 import Filters from './Filters';
 import TransactionList from './TransactionList';
 import Pagination from './Pagination';
 import ExportData from './ExportData';
+import { Plus, Filter, Download } from 'lucide-react';
 
 const TransactionsPage = ({
   transactions,
@@ -17,45 +19,75 @@ const TransactionsPage = ({
   onLimitChange,
   loading,
 }) => {
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+
   return (
     <div className="space-y-6">
-      {/* Add Transaction Form */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md p-6">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
-          ➕ Nueva Transacción
-        </h2>
-        <AddTransaction onAdd={onAdd} />
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          {/* Header is handled in Layout, but we can add specific controls here */}
+        </div>
+        <div className="flex gap-3 w-full sm:w-auto">
+          <button
+            onClick={() => setShowAddModal(!showAddModal)}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors font-medium shadow-sm shadow-emerald-500/20"
+          >
+            <Plus size={18} />
+            Add Transaction
+          </button>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border transition-colors ${showFilters
+                ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+              }`}
+          >
+            <Filter size={18} />
+            Filters
+          </button>
+          <div className="hidden sm:block">
+            <ExportData transactions={transactions} />
+          </div>
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md p-6">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
-          🔍 Filtros
-        </h2>
-        <Filters filters={filters} onFiltersChange={onFiltersChange} />
-      </div>
+      {/* Expandable Sections */}
+      {showAddModal && (
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6 animate-in slide-in-from-top-4 fade-in duration-200">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-bold text-lg text-slate-800 dark:text-white">New Transaction</h3>
+            <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">Cancel</button>
+          </div>
+          <AddTransaction onAdd={(data) => { onAdd(data); setShowAddModal(false); }} />
+        </div>
+      )}
 
-      {/* Export Buttons */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md p-6">
-        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
-          📥 Descargar Datos
-        </h3>
-        <ExportData transactions={transactions} />
-      </div>
+      {showFilters && (
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6 animate-in slide-in-from-top-4 fade-in duration-200">
+          <Filters filters={filters} onFiltersChange={onFiltersChange} />
+        </div>
+      )}
 
-      {/* Transactions List */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md p-6">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
-          📋 Transacciones ({pagination.total})
-        </h2>
-
+      {/* Transactions Table Container */}
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
         {loading ? (
-          <div className="text-center py-10 text-slate-500 dark:text-slate-400">
-            Cargando transacciones...
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mb-4"></div>
+            Loading transactions...
           </div>
         ) : transactions.length === 0 ? (
-          <div className="text-center py-10 text-slate-500 dark:text-slate-400">
-            No hay transacciones. ¡Crea una nueva!
+          <div className="text-center py-20">
+            <div className="bg-slate-50 dark:bg-slate-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Plus size={24} className="text-slate-400" />
+            </div>
+            <p className="text-slate-500 dark:text-slate-400">No transactions found.</p>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="text-emerald-500 font-medium mt-2 hover:underline"
+            >
+              Create your first transaction
+            </button>
           </div>
         ) : (
           <>
@@ -65,11 +97,13 @@ const TransactionsPage = ({
               onUpdate={onUpdate}
             />
 
-            <Pagination
-              pagination={pagination}
-              onPageChange={onPageChange}
-              onLimitChange={onLimitChange}
-            />
+            <div className="border-t border-slate-100 dark:border-slate-800 p-4">
+              <Pagination
+                pagination={pagination}
+                onPageChange={onPageChange}
+                onLimitChange={onLimitChange}
+              />
+            </div>
           </>
         )}
       </div>
