@@ -4,7 +4,8 @@ import {
   Receipt, 
   PieChart, 
   Wallet, 
-  Settings, 
+  Tag,
+  Activity,
   LogOut,
   Menu,
   X 
@@ -12,10 +13,12 @@ import {
 
 const Sidebar = ({ currentSection, onSectionChange, onLogout, isOpen, setIsOpen }) => {
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'transactions', label: 'Transactions', icon: Receipt },
-    { id: 'budgets', label: 'Budgets', icon: Wallet },
-    { id: 'analytics', label: 'Analytics', icon: PieChart },
+    { id: 'dashboard', label: 'Panel', icon: LayoutDashboard },
+    { id: 'transactions', label: 'Transacciones', icon: Receipt },
+    { id: 'budgets', label: 'Presupuestos', icon: Wallet },
+    { id: 'analytics', label: 'Analítica', icon: PieChart },
+    { id: 'categories', label: 'Categorías', icon: Tag },
+    { id: 'prices', label: 'Precios', icon: Activity },
   ];
 
   return (
@@ -37,7 +40,7 @@ const Sidebar = ({ currentSection, onSectionChange, onLogout, isOpen, setIsOpen 
         {/* Logo Area */}
         <div className="flex h-16 items-center justify-between px-6 border-b border-slate-800">
           <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-400">
-            Expense Tracker
+            Gestor de Finanzas
           </span>
           <button 
             onClick={() => setIsOpen(false)}
@@ -80,19 +83,12 @@ const Sidebar = ({ currentSection, onSectionChange, onLogout, isOpen, setIsOpen 
 
         {/* Footer Actions */}
         <div className="p-4 border-t border-slate-800 space-y-2">
-           <button
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-colors"
-          >
-            <Settings size={20} className="text-slate-500" />
-            Settings
-          </button>
-          
           <button
             onClick={onLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
           >
             <LogOut size={20} />
-            Logout
+            Cerrar sesión
           </button>
         </div>
       </aside>

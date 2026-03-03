@@ -6,6 +6,7 @@ const cors = require('cors');
 const authRouter = require('./routes/auth');
 const transactionsRouter = require('./routes/transactions');
 const budgetsRouter = require('./routes/budgets');
+const categoriesRouter = require('./routes/categories');
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(express.json()); // Parseo de JSON en el body
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/transactions', transactionsRouter);
 app.use('/api/v1/budgets', budgetsRouter);
+app.use('/api/v1/categories', categoriesRouter);
 
 // Ruta simple de salud
 app.get('/', (req, res) => {

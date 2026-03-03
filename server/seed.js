@@ -3,10 +3,21 @@ const bcrypt = require('bcryptjs');
 const User = require('./models/User');
 const Transaction = require('./models/Transaction');
 const Budget = require('./models/Budget');
+const Category = require('./models/Category');
 
 require('dotenv').config();
 
 const CATEGORIES = ['Comida', 'Transporte', 'Entretenimiento', 'Salud', 'Otros', 'Casa', 'Salario', 'Freelance'];
+const CATEGORY_TYPES = {
+  'Comida': 'expense',
+  'Transporte': 'expense',
+  'Entretenimiento': 'expense',
+  'Salud': 'expense',
+  'Otros': 'expense',
+  'Casa': 'expense',
+  'Salario': 'income',
+  'Freelance': 'income',
+};
 
 // Datos de transacciones de prueba
 const generateTransactions = (userId) => {
@@ -95,6 +106,7 @@ async function seed() {
     await User.deleteMany({ email: 'test@example.com' });
     await Transaction.deleteMany({});
     await Budget.deleteMany({});
+    await Category.deleteMany({});
 
     // Crear usuario de prueba
     console.log('👤 Creando usuario de prueba...');
@@ -117,6 +129,16 @@ async function seed() {
     const budgets = generateBudgets(testUser._id);
     const savedBudgets = await Budget.insertMany(budgets);
     console.log(`✅ ${savedBudgets.length} presupuestos creados`);
+
+    // Insertar categorías predeterminadas
+    console.log('📁 Creando categorías...');
+    const categoryDocs = CATEGORIES.map((name) => ({
+      userId: testUser._id,
+      name,
+      type: CATEGORY_TYPES[name] || 'expense',
+    }));
+    const savedCats = await Category.insertMany(categoryDocs);
+    console.log(`✅ ${savedCats.length} categorías creadas`);
 
     // Estadísticas
     const totalIncome = savedTransactions

@@ -8,16 +8,18 @@ Aplicación web completa para **rastrear ingresos y gastos personales** con aute
 
 ### Core Features ✅
 - **Autenticación**: Registro e inicio de sesión con JWT
-- **Registrar transacciones**: Ingresos (monto positivo) o gastos (monto negativo)
+- **Registrar transacciones**: Ingresos o gastos con categoría personalizable filtrada por tipo (ingresos/gastos)
 - **Ver balance**: Total de ingresos menos gastos en el header
-- **Filtros avanzados**: Por categoría, texto, rango de montos, fechas
+- **Filtros avanzados**: Por categoría dinámica, texto, rango de montos, fechas
 - **Editar/Eliminar**: Gestionar transacciones existentes
 
 ### Features Adicionales ✅
-- **Presupuestos por categoría**: Establecer límites mensuales con alertas
+- **Presupuestos por categoría**: Establecer límites mensuales con alertas y exportar a CSV/PDF
+- **Gestión de categorías**: Agregar/editar/eliminar categorías personalizadas, divididas en ingresos y gastos
+- **Precios de mercado**: Consulta en tiempo real de Bitcoin, Ethereum y USD/ARS para recomendaciones de inversión
 - **Paginación**: Navegar entre páginas de transacciones (10/20/50/100 items)
-- **Exportar datos**: Descargar en formato CSV (Excel) o PDF (profesional)
-- **Gráficos avanzados**: Pie chart, líneas, barras y estadísticas
+- **Exportar datos**: Descargar transacciones o presupuestos en formato CSV o PDF
+- **Gráficos avanzados**: Pie chart, líneas, barras y estadísticas (con fechas corregidas)
 - **Modo oscuro/claro**: Tema persistente con preferencia del sistema
 
 ### Seguridad 🔒
@@ -53,10 +55,16 @@ gestorgastos/
 │   │   │   ├── TransactionList.jsx  # Con edición inline
 │   │   │   ├── AddTransaction.jsx
 │   │   │   ├── ExpensesChart.jsx
-│   │   │   ├── Filters.jsx          # 6 parámetros con debounce
-│   │   │   ├── BudgetManager.jsx    # Presupuestos por mes/categoría
-│   │   │   ├── Pagination.jsx       # Navegación de páginas
-│   │   │   ├── ExportData.jsx       # CSV + PDF
+│   │   │   ├── Filters.jsx          # 6 parámetros con debounce (categorías dinámicas)
+│   │   │   ├── AddTransaction.jsx   # Formulario con selección de categoría
+│   │   │   ├── BudgetsPage.jsx      # Gestión de presupuestos mensual
+│   │   │   ├── BudgetManager.jsx    # (legacy) otra vista de presupuestos
+│   │   │   ├── ExportData.jsx       # Exportar transacciones a CSV/PDF
+│   │   │   ├── ExportBudgets.jsx    # Exportar presupuestos a CSV/PDF
+│   │   │   ├── CategoriesPage.jsx   # CRUD de categorías
+│   │   │   ├── Sidebar.jsx          # Menú lateral con navegación (sin botón Ajustes)
+│   │   │   ├── CategoriesPage.jsx   # CRUD de categorías (ingresos/gastos)
+│   │   └── PricesPage.jsx       # Precios de mercado (BTC, ETH, USD)
 │   │   │   ├── AdvancedCharts.jsx   # Múltiples gráficos
 │   │   │   └── ThemeToggle.jsx      # Cambiar tema
 │   │   ├── context/
@@ -86,6 +94,8 @@ gestorgastos/
 ├── GUIA_NUEVAS_FUNCIONALIDADES.md   # Guía de usuario
 ├── package.json                     # Scripts para correr ambos servicios
 └── README.md
+    ├── ExportBudgets.jsx # componente añadido
+    ├── CategoriesPage.jsx # componente añadido
 ```
 
 ---
@@ -195,8 +205,8 @@ DELETE /api/v1/transactions/:id
 ### Presupuestos
 ```
 GET    /api/v1/budgets?month=2024-01
-POST   /api/v1/budgets
-PUT    /api/v1/budgets/:id
+POST   /api/v1/budgets             # { category, limit, month }
+PUT    /api/v1/budgets/:id         # { limit }
 DELETE /api/v1/budgets/:id
 ```
 

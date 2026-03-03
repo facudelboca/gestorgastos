@@ -72,26 +72,25 @@ const Dashboard = ({ transactions: pageTransactions, income, expense, balance })
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          title="Net Worth"
-          amount={`$${stats.balance.toFixed(2)}`}
+          title="Patrimonio"
+          amount={stats.balance.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
           icon={Wallet}
           colorClass="bg-blue-500"
-        // trend={2.5} // Example trend
         />
         <StatCard
-          title="Income"
-          amount={`$${stats.income.toFixed(2)}`}
+          title="Ingresos"
+          amount={stats.income.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
           icon={TrendingUp}
           colorClass="bg-emerald-500"
         />
         <StatCard
-          title="Expenses"
-          amount={`$${stats.expense.toFixed(2)}`}
+          title="Gastos"
+          amount={stats.expense.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
           icon={TrendingDown}
           colorClass="bg-rose-500"
         />
         <StatCard
-          title="Transactions"
+          title="Transacciones"
           amount={transactionsToUse.length}
           icon={Activity}
           colorClass="bg-violet-500"
@@ -101,13 +100,13 @@ const Dashboard = ({ transactions: pageTransactions, income, expense, balance })
       {/* Main Chart Area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-6">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Spending Overview</h3>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Resumen de gastos</h3>
           <AdvancedCharts transactions={transactionsToUse} />
         </div>
 
         {/* Recent Activity / Mini Widget */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm p-6">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Recent Activity</h3>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Actividad reciente</h3>
           <div className="space-y-4">
             {pageTransactions.slice(0, 5).map(t => (
               <div key={t._id} className="flex items-center justify-between p-3 hover:bg-slate-50 dark:hover:bg-slate-750 rounded-lg transition-colors">
@@ -117,16 +116,17 @@ const Dashboard = ({ transactions: pageTransactions, income, expense, balance })
                   </div>
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white text-sm">{t.text}</p>
-                    <p className="text-xs text-slate-500">{new Date(t.date).toLocaleDateString()}</p>
+                    import { displayFromISO } from '../utils/date';
+                    <p className="text-xs text-slate-500">{displayFromISO(t.date)}</p>
                   </div>
                 </div>
                 <span className={`font-mono text-sm font-medium ${t.amount < 0 ? 'text-slate-900 dark:text-white' : 'text-emerald-600'}`}>
-                  {t.amount > 0 ? '+' : ''}${Math.abs(t.amount).toFixed(2)}
+                  {(t.amount > 0 ? '+' : '-')}{Math.abs(t.amount).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                 </span>
               </div>
             ))}
             {pageTransactions.length === 0 && (
-              <p className="text-sm text-slate-500 text-center py-4">No recent transactions</p>
+              <p className="text-sm text-slate-500 text-center py-4">No hay actividad reciente</p>
             )}
           </div>
         </div>

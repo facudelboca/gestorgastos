@@ -1,4 +1,4 @@
-
+import { isoDateKey, displayFromISO } from '../utils/date';
 import React, { useMemo, useState } from 'react';
 import {
   AreaChart,
@@ -47,17 +47,17 @@ const AdvancedCharts = ({ transactions = [], days = 30 }) => {
     if (!days || days === 'all') return transactions;
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
-    return transactions.filter(t => new Date(t.date) >= cutoff);
+    const cutoffKey = isoDateKey(cutoff.toISOString());
+    return transactions.filter(t => isoDateKey(t.date) >= cutoffKey);
   }, [transactions, days]);
 
   // 1. Process Data for Spending Over Time (Area Chart)
+
   const spendingData = useMemo(() => {
     const grouped = {};
     filteredTransactions.forEach(t => {
       if (t.amount >= 0) return; // Only expenses
-      // Use YYYY-MM-DD for sorting safety
-      const dateObj = new Date(t.date);
-      const key = dateObj.toISOString().split('T')[0];
+      const key = isoDateKey(t.date);
       if (!grouped[key]) grouped[key] = 0;
       grouped[key] += Math.abs(t.amount);
     });
@@ -65,7 +65,7 @@ const AdvancedCharts = ({ transactions = [], days = 30 }) => {
     return Object.entries(grouped)
       .map(([date, amount]) => ({
         date,
-        displayDate: new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }),
+        displayDate: displayFromISO(date),
         amount
       }))
       .sort((a, b) => a.date.localeCompare(b.date));
@@ -90,9 +90,9 @@ const AdvancedCharts = ({ transactions = [], days = 30 }) => {
   const monthlyData = useMemo(() => {
     const grouped = {};
     filteredTransactions.forEach(t => {
-      const date = new Date(t.date);
-      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      const displayKey = date.toLocaleString('es-ES', { month: 'short', year: 'numeric' });
+      const d = new Date(t.date);
+      const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+      const displayKey = new Date(`${key}-01T00:00:00`).toLocaleString('es-ES', { month: 'short', year: 'numeric' });
 
       if (!grouped[key]) grouped[key] = { name: displayKey, income: 0, expense: 0, id: key };
 

@@ -2,10 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Plus, Trash2, AlertTriangle, Check, X, Calendar } from 'lucide-react';
+import ExportBudgets from './ExportBudgets';
 
 const CATEGORIES = ['Comida', 'Transporte', 'Entretenimiento', 'Salud', 'Otros', 'Casa'];
 
-const BudgetsPage = ({ token }) => {
+const BudgetsPage = ({ token, categories = CATEGORIES }) => {
   const [budgets, setBudgets] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState(
     new Date().toISOString().slice(0, 7)
@@ -18,6 +19,9 @@ const BudgetsPage = ({ token }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Extract names from category objects if they come from API
+  const categoryNames = categories.map(cat => typeof cat === 'string' ? cat : cat.name || cat);
 
   useEffect(() => {
     fetchBudgets();
@@ -159,39 +163,42 @@ const BudgetsPage = ({ token }) => {
         </div>
 
         {!showForm && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition shadow-sm"
-          >
-            <Plus size={18} />
-            New Budget
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition shadow-sm"
+            >
+              <Plus size={18} />
+              Nuevo presupuesto
+            </button>
+            <ExportBudgets budgets={budgets} />
+          </div>
         )}
       </div>
 
       {/* Create Form */}
       {showForm && (
         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-6 border border-slate-200 dark:border-slate-700 animate-in fade-in slide-in-from-top-4">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Create New Budget</h3>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Crear presupuesto</h3>
           <form onSubmit={handleAddBudget}>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-                  Category
+                  Categoría
                 </label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm"
                 >
-                  {CATEGORIES.map(cat => (
+                  {categoryNames.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-                  Monthly Limit
+                  Límite mensual
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
@@ -210,14 +217,14 @@ const BudgetsPage = ({ token }) => {
                   type="submit"
                   className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium transition text-sm"
                 >
-                  Save
+                  Guardar
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
                   className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 px-4 py-2 rounded-lg font-medium transition text-sm"
                 >
-                  Cancel
+                  Cancelar
                 </button>
               </div>
             </div>
@@ -234,12 +241,12 @@ const BudgetsPage = ({ token }) => {
           ))
         ) : budgets.length === 0 ? (
           <div className="col-span-full text-center py-12 text-slate-400 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
-            <p>No budgets found for this month.</p>
+            <p>No hay presupuestos para este mes.</p>
           </div>
         ) : (
           budgets.map((budget) => {
             const percent = Math.min(budget.percentage, 100);
-            const isExceeded = budget.percentage > 100;
+            const isExceeded = budget.isExceeded || budget.percentage > 100;
 
             return (
               <div
@@ -252,14 +259,14 @@ const BudgetsPage = ({ token }) => {
                       {budget.category}
                     </h3>
                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
-                      ${budget.spent.toFixed(2)} spent
+                      Gastado: {budget.spent.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                      ${budget.remaining.toFixed(0)}
+                      {budget.remaining.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                     </p>
-                    <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Remaining</p>
+                    <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Restante</p>
                   </div>
                 </div>
 
@@ -275,7 +282,7 @@ const BudgetsPage = ({ token }) => {
                 <div className="flex items-center justify-between pt-4 border-t border-slate-50 dark:border-slate-800">
                   <div className="flex-1 mr-4">
                     <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                      <span>Limit:</span>
+                      <span>Límite:</span>
                       <input
                         type="number"
                         defaultValue={budget.limit}
@@ -299,7 +306,7 @@ const BudgetsPage = ({ token }) => {
                 {isExceeded && (
                   <div className="absolute -top-2 -right-2 bg-rose-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm flex items-center gap-1 animate-bounce">
                     <AlertTriangle size={12} />
-                    Over!
+                    ¡Excedido!
                   </div>
                 )}
               </div>

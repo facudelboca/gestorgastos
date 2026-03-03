@@ -9,6 +9,7 @@ import { Plus, Filter, Download } from 'lucide-react';
 
 const TransactionsPage = ({
   transactions,
+  categories = [],
   filters,
   onFiltersChange,
   onAdd,
@@ -34,7 +35,7 @@ const TransactionsPage = ({
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors font-medium shadow-sm shadow-emerald-500/20"
           >
             <Plus size={18} />
-            Add Transaction
+            Agregar transacción
           </button>
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -44,7 +45,7 @@ const TransactionsPage = ({
               }`}
           >
             <Filter size={18} />
-            Filters
+            Filtros
           </button>
           <div className="hidden sm:block">
             <ExportData transactions={transactions} />
@@ -54,18 +55,18 @@ const TransactionsPage = ({
 
       {/* Expandable Sections */}
       {showAddModal && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6 animate-in slide-in-from-top-4 fade-in duration-200">
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6 animate-in slide-in-from-top-4 fade-in duration-200">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-lg text-slate-800 dark:text-white">New Transaction</h3>
-            <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">Cancel</button>
+            <h3 className="font-bold text-lg text-slate-800 dark:text-white">Nueva transacción</h3>
+            <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">Cancelar</button>
           </div>
-          <AddTransaction onAdd={(data) => { onAdd(data); setShowAddModal(false); }} />
+          <AddTransaction categories={categories} onAdd={(data) => { onAdd(data); setShowAddModal(false); }} />
         </div>
       )}
 
       {showFilters && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6 animate-in slide-in-from-top-4 fade-in duration-200">
-          <Filters filters={filters} onFiltersChange={onFiltersChange} />
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800 p-6 animate-in slide-in-from-top-4 fade-in duration-200">
+          <Filters categories={categories} filters={filters} onFiltersChange={onFiltersChange} />
         </div>
       )}
 
@@ -74,19 +75,19 @@ const TransactionsPage = ({
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mb-4"></div>
-            Loading transactions...
+            Cargando transacciones...
           </div>
         ) : transactions.length === 0 ? (
           <div className="text-center py-20">
             <div className="bg-slate-50 dark:bg-slate-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <Plus size={24} className="text-slate-400" />
             </div>
-            <p className="text-slate-500 dark:text-slate-400">No transactions found.</p>
+            <p className="text-slate-500 dark:text-slate-400">No se encontraron transacciones.</p>
             <button
               onClick={() => setShowAddModal(true)}
               className="text-emerald-500 font-medium mt-2 hover:underline"
             >
-              Create your first transaction
+              Crear tu primera transacción
             </button>
           </div>
         ) : (

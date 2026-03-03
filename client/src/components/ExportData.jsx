@@ -1,11 +1,11 @@
 import React from 'react';
 import Papa from 'papaparse';
 import jsPDF from 'jspdf';
+import { displayFromISO } from '../utils/date';
 
 const ExportData = ({ transactions }) => {
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('es-AR');
-  };
+
+  const formatDate = (date) => displayFromISO(date, 'es-AR');
 
   const formatCurrency = (amount) => {
     return `$${amount.toFixed(2)}`;

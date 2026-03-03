@@ -5,7 +5,7 @@ const Navbar = ({ user, currentSection, onSectionChange, onLogout }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const sections = [
-    { id: 'dashboard', label: '📊 Dashboard', icon: '📊' },
+    { id: 'dashboard', label: '📊 Panel', icon: '📊' },
     { id: 'transactions', label: '💸 Transacciones', icon: '💸' },
     { id: 'budgets', label: '💰 Presupuestos', icon: '💰' },
     { id: 'analytics', label: '📈 Análisis', icon: '📈' },
@@ -20,7 +20,7 @@ const Navbar = ({ user, currentSection, onSectionChange, onLogout }) => {
             <div className="text-2xl">💼</div>
             <div>
               <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-                Expense Tracker
+                Gestor de Finanzas
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {user?.name || 'Usuario'}
@@ -52,7 +52,7 @@ const Navbar = ({ user, currentSection, onSectionChange, onLogout }) => {
               onClick={onLogout}
               className="hidden sm:block bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition"
             >
-              Logout
+              Cerrar sesión
             </button>
 
             {/* Mobile Menu Button */}
@@ -90,7 +90,7 @@ const Navbar = ({ user, currentSection, onSectionChange, onLogout }) => {
               onClick={onLogout}
               className="w-full text-left bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition"
             >
-              Logout
+              Cerrar sesión
             </button>
           </div>
         )}

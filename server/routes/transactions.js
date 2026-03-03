@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
     const skip = (pageNum - 1) * limitNum;
 
     // Construir filtro base (solo transacciones del usuario autenticado)
-    let filter = { userId: req.user.userId };
+    let filter = { userId: req.userId };
 
     // Filtro por categoría (case-insensitive)
     if (category) {
@@ -115,7 +115,7 @@ router.post('/', async (req, res) => {
     }
 
     const transaction = await Transaction.create({
-      userId: req.user.userId,
+      userId: req.userId,
       text,
       amount,
       category,
@@ -161,7 +161,7 @@ router.put('/:id', async (req, res) => {
     }
 
     // Verificar que la transacción pertenece al usuario autenticado
-    if (transaction.userId.toString() !== req.user.userId) {
+    if (transaction.userId.toString() !== req.userId) {
       return res.status(403).json({
         success: false,
         error: 'No tienes permiso para editar esta transacción',
@@ -219,7 +219,7 @@ router.delete('/:id', async (req, res) => {
     }
 
     // Verificar que la transacción pertenece al usuario autenticado
-    if (transaction.userId.toString() !== req.user.userId) {
+    if (transaction.userId.toString() !== req.userId) {
       return res.status(403).json({
         success: false,
         error: 'No tienes permiso para eliminar esta transacción',

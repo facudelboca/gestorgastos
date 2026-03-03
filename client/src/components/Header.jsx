@@ -10,10 +10,10 @@ function Header({ balance }) {
     <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
       <div>
         <h1 className="text-2xl md:text-3xl font-semibold text-slate-50 tracking-tight">
-          Personal Expense Tracker
+          Gestor de Finanzas
         </h1>
         <p className="text-slate-400 text-sm mt-1">
-          Controla tus gastos e ingresos de forma sencilla.
+          Controla tus ingresos, gastos y presupuestos.
         </p>
       </div>
 

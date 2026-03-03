@@ -1,14 +1,35 @@
 import { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 
-export default function Filters({ filters, onFiltersChange }) {
+const DEFAULT_CATEGORIES = ['Comida', 'Transporte', 'Salario', 'Ocio', 'Servicios', 'Salud', 'Otros'];
+
+export default function Filters({ filters, onFiltersChange, categories: propCategories }) {
   const [isOpen, setIsOpen] = useState(false);
   const [localFilters, setLocalFilters] = useState(filters);
+  const [categories, setCategories] = useState(propCategories || DEFAULT_CATEGORIES);
   const debounceTimeoutRef = useRef(null);
 
   // Sincronizar localFilters cuando filters prop cambia desde afuera
   useEffect(() => {
     setLocalFilters(filters);
-  }, []);
+  }, [filters]);
+
+  // Traer categorías cuando se monte si no fueron proporcionadas por props
+  useEffect(() => {
+    if (propCategories) return;
+    const loadCats = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('http://localhost:5000/api/v1/categories', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.data) setCategories(res.data);
+      } catch (e) {
+        console.warn('No se pudieron cargar categorías en filtros', e);
+      }
+    };
+    loadCats();
+  }, [propCategories]);
 
   const handleChange = (field, value) => {
     const updatedFilters = {
@@ -78,13 +99,22 @@ export default function Filters({ filters, onFiltersChange }) {
               <label className="block text-sm font-medium text-slate-300 mb-1">
                 Categoría
               </label>
-              <input
-                type="text"
+              <select
                 value={localFilters.category}
                 onChange={(e) => handleChange('category', e.target.value)}
-                placeholder="Ej: Comida, Transporte"
-                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-50 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Todas</option>
+                {categories.map(cat => {
+                  const name = typeof cat === 'string' ? cat : cat.name || cat;
+                  const id = typeof cat === 'string' ? cat : cat._id || cat;
+                  return (
+                    <option key={id} value={name}>
+                      {name}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
 
             {/* Monto mínimo */}

@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const CATEGORIES = ['Comida', 'Transporte', 'Entretenimiento', 'Salud', 'Otros', 'Casa'];
+// placeholder list if none provided
+const DEFAULT_CATEGORIES = ['Comida', 'Transporte', 'Entretenimiento', 'Salud', 'Otros', 'Casa'];
 
-const BudgetManager = ({ token }) => {
+const BudgetManager = ({ token, categories: propCategories = DEFAULT_CATEGORIES }) => {
   const [budgets, setBudgets] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState(
     new Date().toISOString().slice(0, 7)
   );
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    category: 'Comida',
+    category: propCategories[0] || '',
     limit: '',
     month: selectedMonth
   });
@@ -173,13 +174,13 @@ const BudgetManager = ({ token }) => {
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="w-full border rounded px-3 py-2"
               >
-                {CATEGORIES.map(cat => (
+                {(propCategories || DEFAULT_CATEGORIES).map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-2">Límite ($)</label>
+              <label className="block text-sm font-semibold mb-2">Límite</label>
               <input
                 type="number"
                 step="0.01"
@@ -221,14 +222,14 @@ const BudgetManager = ({ token }) => {
                 <div>
                   <h3 className="font-bold text-lg">{budget.category}</h3>
                   <p className="text-sm text-gray-600">
-                    Gastado: ${budget.spent.toFixed(2)} / ${budget.limit.toFixed(2)}
+                    Gastado: {budget.spent.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })} / {budget.limit.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                   </p>
                 </div>
                 <div className="text-right">
                   <span className={`px-3 py-1 rounded text-white text-sm font-semibold ${getProgressColor(budget.percentage)}`}>
                     {getStatusText(budget.percentage)}
                   </span>
-                  <p className="text-lg font-bold text-gray-700 mt-1">${budget.remaining.toFixed(2)}</p>
+                  <p className="text-lg font-bold text-gray-700 mt-1">{budget.remaining.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</p>
                 </div>
               </div>
 
@@ -264,7 +265,7 @@ const BudgetManager = ({ token }) => {
 
               {budget.percentage > 100 && (
                 <p className="text-red-500 text-sm font-semibold mt-2">
-                  ⚠️ ¡Presupuesto excedido por ${(budget.spent - budget.limit).toFixed(2)}!
+                  ⚠️ ¡Presupuesto excedido por {(budget.spent - budget.limit).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}!
                 </p>
               )}
             </div>

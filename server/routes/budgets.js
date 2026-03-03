@@ -23,11 +23,15 @@ router.get('/', authMiddleware, async (req, res) => {
     // Calcular gasto actual para cada presupuesto
     const budgetsWithSpent = await Promise.all(
       budgets.map(async (budget) => {
-        // Calculate start and end of the month correctly
-        const startOfMonth = new Date(`${budget.month}-01T00:00:00.000Z`);
-        const endOfMonth = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 0, 23, 59, 59, 999);
+        // Calcular inicio del mes (UTC) y inicio del mes siguiente (exclusivo)
+        const [yearStr, monthStr] = (budget.month || '').split('-');
+        const year = parseInt(yearStr, 10);
+        const month = parseInt(monthStr, 10); // 1-12
 
-        console.log('Start of month:', startOfMonth, 'End of month:', endOfMonth);
+        const startOfMonth = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
+        const startOfNextMonth = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
+
+        console.log('Start of month:', startOfMonth, 'Start of next month:', startOfNextMonth);
 
         const spent = await Transaction.aggregate([
           {
@@ -37,7 +41,7 @@ router.get('/', authMiddleware, async (req, res) => {
               amount: { $lt: 0 }, // Only count expenses (negative amounts)
               date: {
                 $gte: startOfMonth,
-                $lte: endOfMonth
+                $lt: startOfNextMonth
               }
             }
           },
@@ -51,11 +55,19 @@ router.get('/', authMiddleware, async (req, res) => {
         // Expenses are negative, so we take absolute value
         const totalSpent = spent.length > 0 ? Math.abs(spent[0].total) : 0;
 
+        // Evitar división por cero y valores NaN
+        const percentage = (budget.limit && budget.limit > 0)
+          ? Math.round((totalSpent / budget.limit) * 100)
+          : 0;
+
+        const isExceeded = totalSpent > budget.limit;
+
         return {
           ...budget.toObject(),
           spent: totalSpent,
           remaining: budget.limit - totalSpent,
-          percentage: Math.round((totalSpent / budget.limit) * 100)
+          percentage,
+          isExceeded
         };
       })
     );

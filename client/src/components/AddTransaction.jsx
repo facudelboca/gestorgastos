@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const DEFAULT_CATEGORY = 'Otros';
 
-const CATEGORIES = [
+// valor por defecto si no se reciben desde el servidor
+const DEFAULT_CATEGORIES = [
   'Comida',
   'Transporte',
   'Salario',
@@ -12,12 +13,30 @@ const CATEGORIES = [
   'Otros',
 ];
 
-function AddTransaction({ onAdd }) {
+function AddTransaction({ onAdd, categories = DEFAULT_CATEGORIES }) {
   const [text, setText] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState('expense'); // 'income' | 'expense'
   const [category, setCategory] = useState(DEFAULT_CATEGORY);
   const [submitting, setSubmitting] = useState(false);
+
+  // Extract names from category objects if they come from API
+  const categoryNames = categories.map(cat => typeof cat === 'string' ? cat : cat.name || cat);
+  
+  // Filter categories based on type (income vs expense)
+  const filteredCategories = categories.filter(cat => {
+    const catType = typeof cat === 'string' ? null : cat.type;
+    if (type === 'income') return catType === 'income' || catType === null;
+    if (type === 'expense') return catType === 'expense' || catType === null;
+    return true;
+  }).map(cat => typeof cat === 'string' ? cat : cat.name || cat);
+
+  // Set default category when type changes
+  useEffect(() => {
+    if (filteredCategories.length > 0 && !filteredCategories.includes(category)) {
+      setCategory(filteredCategories[0]);
+    }
+  }, [type]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -125,7 +144,7 @@ function AddTransaction({ onAdd }) {
             onChange={(e) => setCategory(e.target.value)}
             className="w-full rounded-lg bg-slate-950/60 border border-slate-800 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
           >
-            {CATEGORIES.map((cat) => (
+            {filteredCategories.map((cat) => (
               <option key={cat} value={cat}>
                 {cat}
               </option>

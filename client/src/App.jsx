@@ -7,12 +7,15 @@ import Dashboard from './components/Dashboard';
 import TransactionsPage from './components/TransactionsPage';
 import BudgetsPage from './components/BudgetsPage';
 import AnalyticsPage from './components/AnalyticsPage';
+import CategoriesPage from './components/CategoriesPage';
+import PricesPage from './components/PricesPage';
 
 const API_URL = 'http://localhost:5000/api/v1/transactions';
 
 function App() {
   const [user, setUser] = useState(null);
   const [transactions, setTransactions] = useState([]);
+  const [categories, setCategories] = useState([]); // dinámicas
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentSection, setCurrentSection] = useState('dashboard');
@@ -44,6 +47,25 @@ function App() {
       }
     }
   }, []);
+
+  // Función para recuperar categorías desde la API
+  const refreshCategories = async () => {
+    if (!user) return;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get('http://localhost:5000/api/v1/categories', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCategories(res.data || []);
+    } catch (err) {
+      console.warn('No se pudieron cargar categorías', err);
+    }
+  };
+
+  // Cuando el usuario cambia, recuperar categorías
+  useEffect(() => {
+    refreshCategories();
+  }, [user]);
 
   // Cargar transacciones
   useEffect(() => {
@@ -228,6 +250,7 @@ function App() {
       {currentSection === 'transactions' && (
         <TransactionsPage
           transactions={transactions}
+          categories={categories}
           filters={filters}
           onFiltersChange={setFilters}
           onAdd={addTransaction}
@@ -241,11 +264,19 @@ function App() {
       )}
 
       {currentSection === 'budgets' && (
-        <BudgetsPage token={localStorage.getItem('token')} />
+        <BudgetsPage token={localStorage.getItem('token')} categories={categories} />
       )}
 
       {currentSection === 'analytics' && (
         <AnalyticsPage transactions={transactions} />
+      )}
+
+      {currentSection === 'categories' && (
+        <CategoriesPage token={localStorage.getItem('token')} onChange={refreshCategories} />
+      )}
+
+      {currentSection === 'prices' && (
+        <PricesPage />
       )}
     </Layout>
   );
