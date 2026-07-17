@@ -1,328 +1,76 @@
-# Personal Expense Tracker
+# Gestor de Gastos - Personal Finance Tracker
 
-Aplicación web completa para **rastrear ingresos y gastos personales** con autenticación, presupuestos, paginación, exportación de datos y gráficos avanzados.
+Este es un proyecto de portfolio profesional diseñado para demostrar un nivel técnico avanzado utilizando Java 25 y Spring Boot 3.x.
 
----
+## 📋 Catálogo de Historias de Usuario (MVP)
 
-## ¿Qué hace este proyecto?
+### US-01: Creación de Cuentas Múltiples
+**Como** usuario,  
+**quiero** registrar diferentes cuentas financieras (banco, efectivo, billeteras virtuales) con un nombre, un saldo inicial (`balance`) usando `BigDecimal`, y un código de moneda ISO de 3 caracteres (ej: 'ARS', 'USD'),  
+**para** trackear mis fondos de forma separada.
 
-### Core Features ✅
-- **Autenticación**: Registro e inicio de sesión con JWT
-- **Registrar transacciones**: Ingresos o gastos con categoría personalizable filtrada por tipo (ingresos/gastos)
-- **Ver balance**: Total de ingresos menos gastos en el header
-- **Filtros avanzados**: Por categoría dinámica, texto, rango de montos, fechas
-- **Editar/Eliminar**: Gestionar transacciones existentes
+### US-02: Registro de Transacciones con Impacto de Saldo
+**Como** usuario,  
+**quiero** registrar ingresos (`INCOME`) y egresos (`EXPENSE`) asociados a una cuenta y categoría,  
+**para** mantener mis saldos actualizados de forma transaccional.  
+*Detalles técnicos:*
+- El backend maneja el registro mediante `@Transactional`.
+- Si la transacción es un `EXPENSE`, se resta del saldo de la cuenta; si es un `INCOME`, se suma.
+- No se permiten montos (`amount`) menores o iguales a cero.
 
-### Features Adicionales ✅
-- **Presupuestos por categoría**: Establecer límites mensuales con alertas y exportar a CSV/PDF
-- **Gestión de categorías**: Agregar/editar/eliminar categorías personalizadas, divididas en ingresos y gastos
-- **Precios de mercado**: Consulta en tiempo real de Bitcoin, Ethereum y USD/ARS para recomendaciones de inversión
-- **Paginación**: Navegar entre páginas de transacciones (10/20/50/100 items)
-- **Exportar datos**: Descargar transacciones o presupuestos en formato CSV o PDF
-- **Gráficos avanzados**: Pie chart, líneas, barras y estadísticas (con fechas corregidas)
-- **Modo oscuro/claro**: Tema persistente con preferencia del sistema
+### US-03: Historial de Transacciones con Filtros y Paginación
+**Como** usuario,  
+**quiero** consultar mis movimientos paginados y filtrados opcionalmente por cuenta, categoría y rango de fechas,  
+**para** revisar el detalle de mi actividad financiera de forma eficiente.
 
-### Seguridad 🔒
-- Contraseñas hasheadas con **bcryptjs** (10 salt rounds)
-- JWT con expiración de 30 días
-- Aislamiento de datos por usuario
-- Validación en backend y frontend
+### US-04: Reporte Mensual por Categoría
+**Como** usuario,  
+**quiero** ver la sumatoria de mis gastos del mes actual agrupados por categoría y su porcentaje de distribución sobre el total gastado,  
+**para** analizar en qué áreas se va mi dinero.
 
----
-
-## Stack tecnológico
-
-| Capa       | Tecnología                          |
-| ---------- | ----------------------------------- |
-| Frontend   | React 18, Vite, Tailwind CSS, Recharts, Axios, PapaParse, jsPDF |
-| Backend    | Node.js, Express.js, Mongoose     |
-| Autenticación | JWT (jsonwebtoken), bcryptjs    |
-| Base de datos | MongoDB                         |
-| Herramientas | Concurrently, Dotenv, Nodemon   |
+### US-05: Presupuestos Límites Mensuales
+**Como** usuario,  
+**quiero** establecer un límite de gasto mensual por categoría,  
+**para** evitar excederme en mis egresos.  
+*Detalles técnicos:*
+- Al registrar un gasto en la US-02, el sistema evalúa de forma proactiva si se excedió el límite mensual y retorna el flag `budget_exceeded: true` en la respuesta.
 
 ---
 
-## Estructura del proyecto
+## 🔄 Épicas Avanzadas Adicionales
 
-```
-gestorgastos/
-├── client/                          # App React (Vite)
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Auth.jsx             # Login/Register
-│   │   │   ├── Header.jsx
-│   │   │   ├── IncomeExpenses.jsx
-│   │   │   ├── TransactionList.jsx  # Con edición inline
-│   │   │   ├── AddTransaction.jsx
-│   │   │   ├── ExpensesChart.jsx
-│   │   │   ├── Filters.jsx          # 6 parámetros con debounce (categorías dinámicas)
-│   │   │   ├── AddTransaction.jsx   # Formulario con selección de categoría
-│   │   │   ├── BudgetsPage.jsx      # Gestión de presupuestos mensual
-│   │   │   ├── BudgetManager.jsx    # (legacy) otra vista de presupuestos
-│   │   │   ├── ExportData.jsx       # Exportar transacciones a CSV/PDF
-│   │   │   ├── ExportBudgets.jsx    # Exportar presupuestos a CSV/PDF
-│   │   │   ├── CategoriesPage.jsx   # CRUD de categorías
-│   │   │   ├── Sidebar.jsx          # Menú lateral con navegación (sin botón Ajustes)
-│   │   │   ├── CategoriesPage.jsx   # CRUD de categorías (ingresos/gastos)
-│   │   └── PricesPage.jsx       # Precios de mercado (BTC, ETH, USD)
-│   │   │   ├── AdvancedCharts.jsx   # Múltiples gráficos
-│   │   │   └── ThemeToggle.jsx      # Cambiar tema
-│   │   ├── context/
-│   │   │   └── ThemeContext.jsx     # Contexto de tema
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
-│   ├── index.html
-│   ├── vite.config.js
-│   ├── tailwind.config.cjs
-│   └── package.json
-├── server/                          # API Node/Express
-│   ├── models/
-│   │   ├── User.js                  # Esquema usuario con auth
-│   │   ├── Transaction.js           # Esquema transacción con userId
-│   │   └── Budget.js                # Esquema presupuestos
-│   ├── middleware/
-│   │   └── auth.js                  # JWT verification
-│   ├── routes/
-│   │   ├── auth.js                  # POST /register, /login
-│   │   ├── transactions.js          # CRUD con filtros + paginación
-│   │   └── budgets.js               # CRUD presupuestos
-│   ├── index.js                     # Entrada del servidor
-│   ├── .env                         # Variables de entorno
-│   └── package.json
-├── CHANGELOG_IMPLEMENTACIONES_v2.md # Detalle técnico de features
-├── GUIA_NUEVAS_FUNCIONALIDADES.md   # Guía de usuario
-├── package.json                     # Scripts para correr ambos servicios
-└── README.md
-    ├── ExportBudgets.jsx # componente añadido
-    ├── CategoriesPage.jsx # componente añadido
-```
+### ÉPICA 4: TRANSFERENCIAS ENTRE CUENTAS Y CONSISTENCIA CONTABLE
+#### US-06: Registro de Transferencias Internas
+**Como** usuario,  
+**quiero** registrar un movimiento de dinero desde una cuenta origen hacia una cuenta destino,  
+**para** reflejar mis traspasos de fondos internos sin alterar los reportes globales de gastos.  
+*Detalles técnicos:*
+- Operación atómica y transaccional mediante `@Transactional`.
+- Validación estricta de saldo suficiente en la cuenta de origen.
+- Almacenamiento en tabla `transfers` dedicada para auditoría limpia.
+
+### ÉPICA 5: AUTOMATIZACIÓN Y GASTOS FIJOS (RECURRENCIA)
+#### US-07: Registro de Suscripciones / Gastos Recurrentes
+**Como** usuario,  
+**quiero** programar un gasto que se repita automáticamente todos los meses en una fecha fija,  
+**para** evitar el registro manual.
+#### TASK-07: Motor de Automatización Programado
+- Un programador (`@Scheduled`) ejecuta todas las madrugadas un barrido sobre las suscripciones activas vencidas, descontando el saldo de las cuentas respectivas y programando la siguiente ejecución (+1 mes).
+- El proceso cuenta con aislamiento de fallas para que un error en una cuenta (ej: saldo insuficiente) no interrumpa el procesamiento del resto.
+
+### ÉPICA 6: METAS DE AHORRO (SAVINGS GOALS)
+#### US-08: Gestión de Metas de Ahorro
+**Como** usuario,  
+**quiero** crear una meta de ahorro especificando un monto objetivo total y una fecha límite,  
+**para** separar dinero enfocado en metas específicas.
+#### US-09: Asignación de Fondos a Metas
+**Como** usuario,  
+**quiero** mover dinero de una de mis cuentas físicas hacia una meta de ahorro (saldo lógico virtual),  
+**para** acumular fondos que reduzcan mi saldo de cuenta disponible pero incrementen mi avance hacia la meta.
 
 ---
 
-## Requisitos previos
-
-- **Node.js** (v18 o superior recomendado)
-- **MongoDB** instalado y en ejecución, o una URI remota (ej. MongoDB Atlas)
-
----
-
-## Instalación
-
-1. Clonar el repositorio y entrar a la carpeta:
-
-   ```bash
-   git clone <url-del-repo>
-   cd gestorgastos
-   ```
-
-2. Instalar dependencias de la raíz (para el script `dev`):
-
-   ```bash
-   npm install
-   ```
-
-3. Instalar dependencias del backend:
-
-   ```bash
-   cd server
-   npm install
-   ```
-
-4. Crear el archivo de entorno en `server/.env`:
-
-   ```bash
-   MONGO_URI=mongodb://localhost:27017/expense-tracker
-   PORT=5000
-   JWT_SECRET=tu_secreto_super_seguro_aqui
-   ```
-
-   Si usás MongoDB Atlas, reemplazá `MONGO_URI` por la cadena de conexión del cluster.
-
-5. Instalar dependencias del frontend:
-
-   ```bash
-   cd ../client
-   npm install
-   ```
-
----
-
-## Cómo usarlo
-
-### Desarrollo (client + server a la vez)
-
-Desde la **raíz** del proyecto:
-
-```bash
-npm run dev
-```
-
-- **Backend**: http://localhost:5000  
-- **Frontend**: http://localhost:5173  
-
-El frontend ya está configurado para hablar con la API en `http://localhost:5000`.
-
-### Solo backend o solo frontend
-
-```bash
-npm run server   # solo API (puerto 5000)
-npm run client   # solo React (puerto 5173)
-```
-
-### Producción
-
-- **Backend**: en `server/` usar `npm start` (o un proceso manager como PM2).
-- **Frontend**: en `client/` ejecutar `npm run build` y servir la carpeta `dist/` con Nginx, Vercel, etc.
-
----
-
-## Documentación Completa
-
-Para detalles de cada feature implementada, consulta:
-
-- **[CHANGELOG_IMPLEMENTACIONES_v2.md](./CHANGELOG_IMPLEMENTACIONES_v2.md)** - Detalle técnico de todas las features
-- **[GUIA_NUEVAS_FUNCIONALIDADES.md](./GUIA_NUEVAS_FUNCIONALIDADES.md)** - Guía de usuario para las nuevas funcionalidades
-
----
-
-## API Endpoints
-
-### Autenticación
-```
-POST   /api/v1/auth/register
-POST   /api/v1/auth/login
-```
-
-### Transacciones
-```
-GET    /api/v1/transactions?page=1&limit=20&filters...
-POST   /api/v1/transactions
-PUT    /api/v1/transactions/:id
-DELETE /api/v1/transactions/:id
-```
-
-### Presupuestos
-```
-GET    /api/v1/budgets?month=2024-01
-POST   /api/v1/budgets             # { category, limit, month }
-PUT    /api/v1/budgets/:id         # { limit }
-DELETE /api/v1/budgets/:id
-```
-
-### Modelos de datos
-
-#### User
-| Campo     | Tipo   | Descripción          |
-|-----------|--------|----------------------|
-| `name`    | String | Nombre del usuario   |
-| `email`   | String | Email único          |
-| `password`| String | Hash bcryptjs        |
-
-#### Transaction
-| Campo     | Tipo   | Descripción                          |
-| --------- | ------ | ------------------------------------ |
-| `userId`  | ObjectId | Propietario de la transacción      |
-| `text`    | String | Descripción                          |
-| `amount`  | Number | Positivo = ingreso, Negativo = gasto |
-| `category`| String | Comida, Transporte, Entretenimiento, Salud, Otros, Casa |
-| `date`    | Date   | Fecha de la transacción              |
-
-#### Budget
-| Campo     | Tipo   | Descripción                          |
-| --------- | ------ | ------------------------------------ |
-| `userId`  | ObjectId | Propietario del presupuesto        |
-| `category`| String | Categoría del presupuesto            |
-| `limit`   | Number | Límite de gasto                      |
-| `month`   | String | Formato YYYY-MM                      |
-
----
-
-## Status de Implementación
-
-### ✅ Completado (v2.0)
-
-- [x] **Autenticación**: Registro, login, logout con JWT (30 días)
-- [x] **Multi-usuario**: Aislamiento de datos por usuario
-- [x] **Filtros avanzados**: 6 parámetros (búsqueda, categoría, montos, fechas) con debounce
-- [x] **Edición de transacciones**: PUT endpoint + UI inline con save/cancel
-- [x] **Presupuestos**: Crear, editar, eliminar presupuestos mensuales por categoría
-- [x] **Paginación**: 10/20/50/100 items por página con navegación inteligente
-- [x] **Exportar datos**: CSV (papaparse) y PDF (jsPDF) profesional
-- [x] **Gráficos avanzados**: Pie chart, líneas, barras y estadísticas generales
-- [x] **Modo oscuro/claro**: Tema persistente con icono toggle
-
-### 📋 Próximas versiones
-
-- [ ] **PWA**: Progressive Web App, offline support, instalable
-- [ ] **Notificaciones**: Push cuando se excede presupuesto
-- [ ] **Tests**: Jest (backend) + React Testing Library (frontend)
-- [ ] **CI/CD**: GitHub Actions para deploy automático
-- [ ] **TypeScript**: Migración gradual a TypeScript
-- [ ] **GraphQL**: Alternativa a REST API (opcional)
-- [ ] **Reportes avanzados**: Gráficos personalizables por período
-- [ ] **Mobile app**: React Native version
-
----
-
-## Características implementadas
-
-### Seguridad 🔒
-- Contraseñas hasheadas con bcryptjs (10 salt rounds)
-- JWT con expiración de 30 días
-- Validación de permisos en cada endpoint
-- Headers CORS configurados
-
-### Rendimiento ⚡
-- Debounce de 500ms en filtros para evitar requests innecesarios
-- Paginación para limitar datos transferidos
-- Índices en MongoDB para queries rápidas
-- Caché del tema en localStorage
-
-### UX/UI 🎨
-- Interfaz responsive (mobile, tablet, desktop)
-- Tema oscuro/claro automático
-- Animaciones suaves con Tailwind CSS
-- Validación en tiempo real
-- Mensajes de error y éxito claros
-- Barras de progreso para presupuestos
-- Tooltips informativos
-
-### Datos 📊
-- Pie chart de distribución de gastos
-- Gráfico de líneas para tendencias mensuales
-- Gráfico de barras para comparativas
-- Estadísticas generales (totales, promedios)
-- Exportación a múltiples formatos
-
----
-
-## Contribuir
-
-Las contribuciones son bienvenidas. Para cambios grandes, abre un issue primero para discutir qué cambiarías.
-
-1. Fork del proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/amazing`)
-3. Commit tus cambios (`git commit -m 'Add amazing feature'`)
-4. Push a la rama (`git push origin feature/amazing`)
-5. Abre un Pull Request
-
----
-
-## Licencia
-
-MIT - Siéntete libre de usar este proyecto como base para tus propias apps.
-
----
-
-## Roadmap
-
-Versiones futuras dependerán de:
-- Feedback de usuarios
-- Nuevas features sugeridas
-- Mejoras de performance
-- Actualizaciones de dependencias
-
-**Última actualización**: Febrero 2026  
-**Versión actual**: 2.0 - Feature Complete
+## 🔮 Trabajos Futuros y Backlog Avanzado
+- **Épica 7: Notificaciones en Tiempo Real (WebSockets / Server-Sent Events):** Notificar de inmediato al cliente en su navegador mediante SSE o WebSockets cuando el motor programado (`@Scheduled`) de cobros automáticos mensuales falle por saldo insuficiente.
+- **Épica 8: Motor de Reglas de Categorización Inteligente:** Diseñar un servicio de clasificación que analice la descripción de las transacciones (ej: "Uber" o "Coto") y las asocie automáticamente a la categoría correspondiente sin intervención del usuario.
 
