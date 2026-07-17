@@ -1,19 +1,28 @@
-/* Gestor de Gastos CSS Design System */
+/* Gestor de Gastos - Premium Fintech Flat Design System */
 :root {
-  --bg-primary: #0b0f19;
-  --bg-secondary: rgba(17, 24, 39, 0.65);
-  --border-color: rgba(255, 255, 255, 0.08);
-  --accent-cyan: #06b6d4;
-  --accent-indigo: #6366f1;
+  --bg-primary: #0a0c10;
+  --bg-card: #11141c;
+  --bg-input: #171b26;
+  --border-color: #1f2533;
+  --border-hover: #313a4f;
+  --accent-cyan: #0284c7;
+  --accent-indigo: #4f46e5;
+  --accent-neon: #00f2fe;
+  
   --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
+  --text-secondary: #8e9aaf;
+  --text-muted: #526077;
+  
   --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.1);
   --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.1);
   --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.1);
+  
   --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  --glow-cyan: 0 0 15px rgba(6, 182, 212, 0.35);
-  --glow-indigo: 0 0 15px rgba(99, 102, 241, 0.35);
+  --card-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.5);
+  --transition-fast: 0.15s ease;
 }
 
 * {
@@ -25,142 +34,159 @@
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-primary);
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.15) 0px, transparent 50%);
   color: var(--text-primary);
   min-height: 100vh;
   line-height: 1.5;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Scrollbar Customization */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-primary);
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border-color);
-  border-radius: 4px;
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  background: var(--border-hover);
 }
 
-/* Glassmorphism Classes */
+/* Flat Premium Card System */
 .glass-card {
-  background: var(--bg-secondary);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 24px;
+  border-radius: 12px;
+  padding: 20px;
   box-shadow: var(--card-shadow);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
 }
 .glass-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: var(--border-hover);
 }
 
+/* Minimalist Input controls */
 .glass-input {
-  background: rgba(31, 41, 55, 0.5);
+  background: var(--bg-input);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 6px;
   color: var(--text-primary);
-  padding: 12px 16px;
+  padding: 10px 14px;
   font-family: var(--font-sans);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   width: 100%;
-  transition: all 0.3s ease;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 .glass-input:focus {
   outline: none;
   border-color: var(--accent-cyan);
-  box-shadow: var(--glow-cyan);
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+.glass-input::placeholder {
+  color: var(--text-muted);
 }
 
-/* Custom Buttons */
+/* Sólid Buttons */
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-indigo), var(--accent-cyan));
+  background: var(--accent-indigo);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
+  border-radius: 6px;
+  padding: 10px 20px;
   font-weight: 600;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background var(--transition-fast), transform var(--transition-fast);
   font-family: var(--font-sans);
   text-align: center;
-  box-shadow: var(--glow-indigo);
 }
 .btn-primary:hover {
-  opacity: 0.95;
-  transform: scale(1.02);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+  background: #4338ca;
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: translateY(0);
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text-primary);
+  background: transparent;
+  color: var(--text-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 12px 24px;
+  border-radius: 6px;
+  padding: 10px 20px;
   font-weight: 500;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-fast);
   font-family: var(--font-sans);
 }
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: var(--text-secondary);
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.4s ease forwards;
+  background: var(--border-color);
+  color: var(--text-primary);
+  border-color: var(--border-hover);
 }
 
 /* Badges */
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
-  border-radius: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
 }
 .badge-income {
-  background: rgba(16, 185, 129, 0.15);
+  background: var(--success-bg);
   color: var(--success);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 .badge-expense {
-  background: rgba(239, 68, 68, 0.15);
+  background: var(--danger-bg);
   color: var(--danger);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
-/* Layout Utilities */
+/* Navigation Tabs Header */
+.nav-tab-button {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: var(--font-sans);
+}
+.nav-tab-button:hover {
+  color: var(--text-primary);
+}
+.nav-tab-button.active {
+  color: var(--accent-cyan);
+  border-bottom-color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+/* Grid Utilities */
 .grid-cols-2 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  gap: 24px;
 }
 @media (max-width: 768px) {
   .grid-cols-2 {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 }
+
 .grid-cols-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -175,4 +201,29 @@ body {
   .grid-cols-3 {
     grid-template-columns: 1fr;
   }
+}
+
+/* Keyframe Animations */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: slideUp 0.25s ease-out forwards;
+}
+
+/* Miscellaneous Helpers */
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  margin-bottom: 8px;
+  transition: border-color var(--transition-fast);
+}
+.list-item:hover {
+  border-color: var(--border-hover);
 }

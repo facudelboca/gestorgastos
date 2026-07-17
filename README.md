@@ -1,76 +1,64 @@
 # Gestor de Gastos - Personal Finance Tracker
 
-Este es un proyecto de portfolio profesional diseñado para demostrar un nivel técnico avanzado utilizando Java 25 y Spring Boot 3.x.
+Este proyecto es una aplicación web empresarial para la administración y el control de finanzas personales. Está diseñado bajo una arquitectura robusta, limpia y modular, ideal como portafolio avanzado o proyecto académico.
 
-## 📋 Catálogo de Historias de Usuario (MVP)
+## 🛠️ Stack Tecnológico
 
-### US-01: Creación de Cuentas Múltiples
-**Como** usuario,  
-**quiero** registrar diferentes cuentas financieras (banco, efectivo, billeteras virtuales) con un nombre, un saldo inicial (`balance`) usando `BigDecimal`, y un código de moneda ISO de 3 caracteres (ej: 'ARS', 'USD'),  
-**para** trackear mis fondos de forma separada.
+### Backend
+- **Lenguaje:** Java 25 (tipado estricto, registros y características modernas).
+- **Framework:** Spring Boot 3.x (Spring Security 6.x, Spring Data JPA, Validation).
+- **Persistencia:** Hibernate / Jakarta Persistence con base de datos **PostgreSQL 16+**.
+- **Seguridad:** Autenticación libre de estado (stateless) mediante **tokens JWT**.
+- **Pruebas:** JUnit 5 y Mockito para pruebas unitarias de servicios.
 
-### US-02: Registro de Transacciones con Impacto de Saldo
-**Como** usuario,  
-**quiero** registrar ingresos (`INCOME`) y egresos (`EXPENSE`) asociados a una cuenta y categoría,  
-**para** mantener mis saldos actualizados de forma transaccional.  
-*Detalles técnicos:*
-- El backend maneja el registro mediante `@Transactional`.
-- Si la transacción es un `EXPENSE`, se resta del saldo de la cuenta; si es un `INCOME`, se suma.
-- No se permiten montos (`amount`) menores o iguales a cero.
-
-### US-03: Historial de Transacciones con Filtros y Paginación
-**Como** usuario,  
-**quiero** consultar mis movimientos paginados y filtrados opcionalmente por cuenta, categoría y rango de fechas,  
-**para** revisar el detalle de mi actividad financiera de forma eficiente.
-
-### US-04: Reporte Mensual por Categoría
-**Como** usuario,  
-**quiero** ver la sumatoria de mis gastos del mes actual agrupados por categoría y su porcentaje de distribución sobre el total gastado,  
-**para** analizar en qué áreas se va mi dinero.
-
-### US-05: Presupuestos Límites Mensuales
-**Como** usuario,  
-**quiero** establecer un límite de gasto mensual por categoría,  
-**para** evitar excederme en mis egresos.  
-*Detalles técnicos:*
-- Al registrar un gasto en la US-02, el sistema evalúa de forma proactiva si se excedió el límite mensual y retorna el flag `budget_exceeded: true` en la respuesta.
+### Frontend
+- **Framework:** React + Vite.
+- **Estado Global:** Context API de React para gestión de sesiones.
+- **Diseño:** Vanilla CSS con un tema plano oscuro estilo Fintech premium de alto contraste (sin dependencias de Tailwindcss ni templates genéricos).
 
 ---
 
-## 🔄 Épicas Avanzadas Adicionales
+## 🚀 Características Clave
 
-### ÉPICA 4: TRANSFERENCIAS ENTRE CUENTAS Y CONSISTENCIA CONTABLE
-#### US-06: Registro de Transferencias Internas
-**Como** usuario,  
-**quiero** registrar un movimiento de dinero desde una cuenta origen hacia una cuenta destino,  
-**para** reflejar mis traspasos de fondos internos sin alterar los reportes globales de gastos.  
-*Detalles técnicos:*
-- Operación atómica y transaccional mediante `@Transactional`.
-- Validación estricta de saldo suficiente en la cuenta de origen.
-- Almacenamiento en tabla `transfers` dedicada para auditoría limpia.
-
-### ÉPICA 5: AUTOMATIZACIÓN Y GASTOS FIJOS (RECURRENCIA)
-#### US-07: Registro de Suscripciones / Gastos Recurrentes
-**Como** usuario,  
-**quiero** programar un gasto que se repita automáticamente todos los meses en una fecha fija,  
-**para** evitar el registro manual.
-#### TASK-07: Motor de Automatización Programado
-- Un programador (`@Scheduled`) ejecuta todas las madrugadas un barrido sobre las suscripciones activas vencidas, descontando el saldo de las cuentas respectivas y programando la siguiente ejecución (+1 mes).
-- El proceso cuenta con aislamiento de fallas para que un error en una cuenta (ej: saldo insuficiente) no interrumpa el procesamiento del resto.
-
-### ÉPICA 6: METAS DE AHORRO (SAVINGS GOALS)
-#### US-08: Gestión de Metas de Ahorro
-**Como** usuario,  
-**quiero** crear una meta de ahorro especificando un monto objetivo total y una fecha límite,  
-**para** separar dinero enfocado en metas específicas.
-#### US-09: Asignación de Fondos a Metas
-**Como** usuario,  
-**quiero** mover dinero de una de mis cuentas físicas hacia una meta de ahorro (saldo lógico virtual),  
-**para** acumular fondos que reduzcan mi saldo de cuenta disponible pero incrementen mi avance hacia la meta.
+1. **Sesión Segura (JWT):** Autenticación de usuarios segura con contraseñas encriptadas mediante `BCrypt` y control de endpoints a través de anotaciones `@AuthenticationPrincipal`.
+2. **Multi-moneda Dinámico:** Conversión automática en tiempo real de saldos y reportes consumiendo un servicio externo de tipo de cambio con almacenamiento local en caché de 12 horas.
+3. **Categorías Personalizables:** El usuario puede crear sus propias categorías con emojis/íconos que se reflejan de inmediato en todas las operaciones del sistema.
+4. **Presupuestos Mensuales:** Límites configurables por categoría que alertan al usuario mediante advertencias visuales proactivas en caso de exceso de gastos.
+5. **Débitos Automáticos (Suscripciones):** Planificador en segundo plano (`@Scheduled`) que ejecuta el cobro de suscripciones fijos mensualmente de forma aislada y atómica.
+6. **Metas de Ahorro:** Reservas lógicas virtuales (aportes lógicos desde saldos de cuentas físicas reales) con visualización del porcentaje de avance.
+7. **Reportes Consolidados:** Conversión y acumulación en memoria de consumos de distintas monedas en una única divisa base para análisis estadísticos exactos.
 
 ---
 
-## 🔮 Trabajos Futuros y Backlog Avanzado
-- **Épica 7: Notificaciones en Tiempo Real (WebSockets / Server-Sent Events):** Notificar de inmediato al cliente en su navegador mediante SSE o WebSockets cuando el motor programado (`@Scheduled`) de cobros automáticos mensuales falle por saldo insuficiente.
-- **Épica 8: Motor de Reglas de Categorización Inteligente:** Diseñar un servicio de clasificación que analice la descripción de las transacciones (ej: "Uber" o "Coto") y las asocie automáticamente a la categoría correspondiente sin intervención del usuario.
+## 📦 Instrucciones de Ejecución
 
+### Prerrequisitos
+- JDK 25 instalado.
+- Node.js (v18+ recomendado).
+- PostgreSQL corriendo localmente en el puerto `5433` (o ajusta las credenciales en `application-local.properties`).
+
+### 1. Servidor Backend (Spring Boot)
+1. Navega a la carpeta `/backend`:
+   ```bash
+   mvn clean compile
+   mvn spring-boot:run
+   ```
+2. El servidor iniciará en `http://localhost:8080`. Se sembrarán datos de demostración automáticamente en el primer arranque.
+
+### 2. Cliente Frontend (React)
+1. Navega a la carpeta `/frontend`:
+   ```bash
+   npm install
+   npm run dev
+   ```
+2. Abre tu navegador en `http://localhost:5173`.
+
+---
+
+## 🔑 Usuario de Demostración y Pruebas
+
+Para evaluar la aplicación de forma inmediata sin configuraciones iniciales manuales, inicia sesión con:
+- **Correo de acceso:** `demo@gestorgastos.com`
+- **Contraseña:** `password123`
+
+*Nota: Este usuario cuenta con balances de cuentas físicas, metas de ahorro, presupuestos y suscripciones activas listas para probar.*

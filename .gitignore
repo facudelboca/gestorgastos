@@ -1,0 +1,14 @@
+# Custom Roadmap
+ROADMAP.md
+
+# Build Directories
+backend/target/
+frontend/dist/
+frontend/node_modules/
+
+# IDE and System Files
+.idea/
+.vscode/
+.gemini/
+*.log
+.DS_Store

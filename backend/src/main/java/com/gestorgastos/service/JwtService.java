@@ -16,12 +16,13 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    // Clave secreta hexadecimal de 256 bits para firmar los tokens JWT
-    private static final String SECRET_KEY_STRING = "9a2f98287813b5d3a2a4e8d24b693245462828b8cf931b26987f2e1a38cf781a";
+    @org.springframework.beans.factory.annotation.Value("${app.security.jwt.secret:9a2f98287813b5d3a2a4e8d24b693245462828b8cf931b26987f2e1a38cf781a}")
+    private String jwtSecret;
+
     private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 24 horas
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = SECRET_KEY_STRING.getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
