@@ -4,15 +4,14 @@ import com.gestorgastos.dto.CreateTransactionRequest;
 import com.gestorgastos.model.RecurringExpense;
 import com.gestorgastos.model.TransactionType;
 import com.gestorgastos.repository.RecurringExpenseRepository;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -21,12 +20,13 @@ public class RecurringExpenseScheduler {
 
     private final RecurringExpenseRepository recurringExpenseRepository;
     private final TransactionService transactionService;
+    private final SseNotificationService sseNotificationService;
 
     /**
      * Se ejecuta todas las madrugadas a las 04:00 AM.
      * Procesa todos los cobros recurrentes que estén vencidos a la fecha de hoy.
      */
-    @Scheduled(cron = "*/10 * * * * *")
+    @Scheduled(cron = "0 0 4 * * *")
     public void processRecurringExpenses() {
         log.info("Iniciando ejecución del motor de cobros recurrentes...");
         LocalDate today = LocalDate.now();
@@ -45,13 +45,15 @@ public class RecurringExpenseScheduler {
                 log.error("FALLO en débito automático de Suscripción ID: {} - Cuenta ID: {} - Motivo: {}", 
                         expense.getId(), expense.getAccount().getId(), e.getMessage(), e);
                 
-                // DECISIÓN DE DISEÑO ARQUITECTÓNICO:
-                // Para suscripciones fijas mensuales (Netflix, Spotify, Alquiler), si falla el pago
-                // no debemos reintentar indefinidamente todos los días en bucle (ya que incrementaría la carga y
-                // podría duplicar cobros no deseados si se recarga saldo tarde). Por lo tanto:
-                // 1. Movemos la fecha de próxima ejecución al mes siguiente.
-                // 2. Opcionalmente se podría desactivar la suscripción, pero aquí optamos por registrar el fallo y
-                //    postergar el cobro hasta el mes entrante (o bien hasta que el usuario reintente manualmente).
+                // Emitir notificación SSE en tiempo real para alertar al usuario (Épica 7)
+                try {
+                    String msg = "El débito automático de '" + expense.getDescription() + "' (" + expense.getAmount() + " " + expense.getAccount().getCurrency() + ") falló en la cuenta '" + expense.getAccount().getName() + "'. Motivo: " + e.getMessage();
+                    sseNotificationService.sendNotification(expense.getUser().getId(), msg);
+                } catch (Exception notifyEx) {
+                    log.error("Error al enviar notificación SSE por fallo de cobro", notifyEx);
+                }
+
+                // reprogramar
                 try {
                     expense.setNextExecutionDate(expense.getNextExecutionDate().plusMonths(1));
                     recurringExpenseRepository.save(expense);

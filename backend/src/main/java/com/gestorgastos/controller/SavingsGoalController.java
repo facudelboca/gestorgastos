@@ -6,13 +6,12 @@ import com.gestorgastos.dto.SavingsGoalResponse;
 import com.gestorgastos.model.User;
 import com.gestorgastos.service.SavingsGoalService;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/savings-goals")

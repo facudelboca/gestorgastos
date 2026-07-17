@@ -1,5 +1,9 @@
 package com.gestorgastos.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import com.gestorgastos.dto.SavingsGoalAllocationRequest;
 import com.gestorgastos.dto.SavingsGoalRequest;
 import com.gestorgastos.dto.SavingsGoalResponse;
@@ -11,19 +15,14 @@ import com.gestorgastos.model.User;
 import com.gestorgastos.repository.AccountRepository;
 import com.gestorgastos.repository.SavingsGoalRepository;
 import com.gestorgastos.repository.UserRepository;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class SavingsGoalServiceTest {

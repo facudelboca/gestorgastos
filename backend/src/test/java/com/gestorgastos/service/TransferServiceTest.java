@@ -1,27 +1,25 @@
 package com.gestorgastos.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import com.gestorgastos.dto.TransferRequest;
 import com.gestorgastos.dto.TransferResponse;
 import com.gestorgastos.exception.BusinessException;
-import com.gestorgastos.exception.ResourceNotFoundException;
 import com.gestorgastos.model.Account;
 import com.gestorgastos.model.Transfer;
 import com.gestorgastos.model.User;
 import com.gestorgastos.repository.AccountRepository;
 import com.gestorgastos.repository.TransferRepository;
 import com.gestorgastos.repository.UserRepository;
+import java.math.BigDecimal;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.math.BigDecimal;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class TransferServiceTest {

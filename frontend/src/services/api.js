@@ -65,6 +65,11 @@ export const api = {
       });
       if (!res.ok) throw new Error('Error al crear categoría');
       return res.json();
+    },
+    suggestCategory: async (description) => {
+      const res = await fetch(`${API_BASE}/categories/suggest?description=${encodeURIComponent(description)}`, { headers: getHeaders() });
+      if (!res.ok) throw new Error('Error al sugerir categoría');
+      return res.json();
     }
   },
   transactions: {
@@ -167,9 +172,23 @@ export const api = {
     }
   },
   reports: {
-    getMonthlyReport: async (currency = 'USD') => {
-      const res = await fetch(`${API_BASE}/reports/monthly?currency=${currency}`, { headers: getHeaders() });
+    getMonthlyReport: async (currency = 'ARS', startDate = '', endDate = '', type = '') => {
+      let url = `${API_BASE}/reports/monthly?currency=${currency}`;
+      if (startDate) url += `&startDate=${new Date(startDate).toISOString()}`;
+      if (endDate) url += `&endDate=${new Date(endDate).toISOString()}`;
+      if (type) url += `&type=${type}`;
+      
+      const res = await fetch(url, { headers: getHeaders() });
       if (!res.ok) throw new Error('Error al generar reporte');
+      return res.json();
+    },
+    getTrendReport: async (currency = 'ARS', period = '6_MONTHS', customStart = '', customEnd = '') => {
+      let url = `${API_BASE}/reports/trend?currency=${currency}&period=${period}`;
+      if (customStart) url += `&customStart=${new Date(customStart).toISOString()}`;
+      if (customEnd) url += `&customEnd=${new Date(customEnd).toISOString()}`;
+      
+      const res = await fetch(url, { headers: getHeaders() });
+      if (!res.ok) throw new Error('Error al generar gráfico de tendencias');
       return res.json();
     }
   }

@@ -1,7 +1,6 @@
 package com.gestorgastos.dto;
 
 import com.gestorgastos.model.TransactionType;
-
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 

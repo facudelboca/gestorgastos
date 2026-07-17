@@ -6,7 +6,14 @@ export default function DashboardView() {
   const [categories, setCategories] = useState([]);
   const [recentTransactions, setRecentTransactions] = useState([]);
   const [report, setReport] = useState([]);
-  const [reportCurrency, setReportCurrency] = useState('USD');
+  const [reportCurrency, setReportCurrency] = useState('ARS');
+
+  // Report filter states (US 10)
+  const [reportType, setReportType] = useState('EXPENSE');
+  const [reportStart, setReportStart] = useState('');
+  const [reportEnd, setReportEnd] = useState('');
+
+
 
   // Form states
   const [txAccount, setTxAccount] = useState('');
@@ -15,6 +22,20 @@ export default function DashboardView() {
   const [txType, setTxType] = useState('EXPENSE');
   const [txDesc, setTxDesc] = useState('');
   const [txAlert, setTxAlert] = useState(null);
+  const [suggestedLabel, setSuggestedLabel] = useState('');
+
+  const handleSuggestCategory = async () => {
+    if (!txDesc || txDesc.trim().length < 3) return;
+    try {
+      const suggested = await api.categories.suggestCategory(txDesc.trim());
+      if (suggested && suggested.id) {
+        setTxCategory(suggested.id);
+        setSuggestedLabel(suggested.name);
+      }
+    } catch (err) {
+      console.warn('No se pudo sugerir categoría', err);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -33,8 +54,15 @@ export default function DashboardView() {
       const recentData = await api.transactions.getTransactions({ page: 0, size: 5 });
       setRecentTransactions(recentData.content || []);
 
-      const repData = await api.reports.getMonthlyReport(reportCurrency);
+      const repData = await api.reports.getMonthlyReport(
+        reportCurrency, 
+        reportStart || null, 
+        reportEnd || null, 
+        reportType
+      );
       setReport(repData);
+
+
     } catch (err) {
       console.error('Error al cargar datos del dashboard', err);
     }
@@ -42,7 +70,7 @@ export default function DashboardView() {
 
   useEffect(() => {
     fetchDashboardData();
-  }, [reportCurrency]);
+  }, [reportCurrency, reportStart, reportEnd, reportType]);
 
   const handleCreateTransaction = async (e) => {
     e.preventDefault();
@@ -61,6 +89,7 @@ export default function DashboardView() {
 
       setTxAmount('');
       setTxDesc('');
+      setSuggestedLabel('');
 
       if (res.budgetExceeded) {
         setTxAlert({ type: 'warning', message: '¡Alerta de Presupuesto! Has superado el límite mensual para esta categoría.' });
@@ -73,10 +102,12 @@ export default function DashboardView() {
     }
   };
 
+
+
   return (
     <div className="grid-cols-2 animate-fade-in">
       
-      {/* COLUMNA IZQUIERDA: SALDOS Y GRÁFICO */}
+      {/* COLUMNA IZQUIERDA: SALDOS Y REPORTES */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
         {/* Mis Cuentas */}
@@ -103,23 +134,45 @@ export default function DashboardView() {
           )}
         </div>
 
-        {/* Distribución de Egresos */}
+        {/* Distribución por Categoría con Filtros */}
         <div className="glass-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: 'var(--text-primary)' }}>📊 Consumo Mensual por Categoría</h3>
-            <select 
-              className="glass-input" 
-              style={{ width: '90px', padding: '4px 8px', fontSize: '0.8rem' }} 
-              value={reportCurrency} 
-              onChange={e => setReportCurrency(e.target.value)}
-            >
-              <option value="USD">USD</option>
-              <option value="ARS">ARS</option>
-              <option value="EUR">EUR</option>
-            </select>
+          <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '12px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: 'var(--text-primary)' }}>📊 Consumo por Categoría</h3>
+              <select 
+                className="glass-input" 
+                style={{ width: '90px', padding: '4px 8px', fontSize: '0.8rem' }} 
+                value={reportCurrency} 
+                onChange={e => setReportCurrency(e.target.value)}
+              >
+                <option value="USD">USD</option>
+                <option value="ARS">ARS</option>
+                <option value="EUR">EUR</option>
+              </select>
+            </div>
+            
+            {/* Filtros avanzados de Reporte (US 10) */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <div style={{ flex: '1', minWidth: '100px' }}>
+                <label style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>Tipo</label>
+                <select className="glass-input" style={{ padding: '4px 8px', fontSize: '0.75rem' }} value={reportType} onChange={e => setReportType(e.target.value)}>
+                  <option value="EXPENSE">Egresos</option>
+                  <option value="INCOME">Ingresos</option>
+                </select>
+              </div>
+              <div style={{ flex: '1.2', minWidth: '110px' }}>
+                <label style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>Inicio</label>
+                <input type="date" className="glass-input" style={{ padding: '2px 6px', fontSize: '0.75rem' }} value={reportStart} onChange={e => setReportStart(e.target.value)} />
+              </div>
+              <div style={{ flex: '1.2', minWidth: '110px' }}>
+                <label style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '2px' }}>Fin</label>
+                <input type="date" className="glass-input" style={{ padding: '2px 6px', fontSize: '0.75rem' }} value={reportEnd} onChange={e => setReportEnd(e.target.value)} />
+              </div>
+            </div>
           </div>
+
           {report.length === 0 ? (
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>No se registran gastos para este mes.</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>No se registran movimientos para los filtros seleccionados.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {report.map(rep => (
@@ -127,17 +180,19 @@ export default function DashboardView() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '4px' }}>
                     <span>{rep.categoryName}</span>
                     <span style={{ fontWeight: '600' }}>
-                      {rep.totalSpent.toLocaleString('en-US')} {reportCurrency} ({rep.percentage.toFixed(1)}%)
+                      {rep.totalSpent.toLocaleString('es-AR')} {reportCurrency} ({rep.percentage.toFixed(1)}%)
                     </span>
                   </div>
                   <div style={{ width: '100%', height: '8px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: `${rep.percentage}%`, height: '100%', background: 'var(--accent-cyan)', borderRadius: '4px' }}></div>
+                    <div style={{ width: `${rep.percentage}%`, height: '100%', background: reportType === 'INCOME' ? 'var(--success)' : 'var(--accent-cyan)', borderRadius: '4px' }}></div>
                   </div>
                 </div>
               ))}
             </div>
           )}
         </div>
+
+
 
       </div>
 
@@ -178,7 +233,9 @@ export default function DashboardView() {
                   </select>
                 </div>
                 <div style={{ flex: '1' }}>
-                  <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Categoría</label>
+                  <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                    Categoría {suggestedLabel && <span style={{ color: 'var(--success)', fontWeight: 'bold' }}> (Sugerida: {suggestedLabel})</span>}
+                  </label>
                   <select className="glass-input" value={txCategory} onChange={e => setTxCategory(e.target.value)}>
                     {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>)}
                   </select>
@@ -201,7 +258,14 @@ export default function DashboardView() {
 
               <div>
                 <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Concepto</label>
-                <input type="text" className="glass-input" placeholder="Detalle (ej: Almuerzo)" value={txDesc} onChange={e => setTxDesc(e.target.value)} />
+                <input 
+                  type="text" 
+                  className="glass-input" 
+                  placeholder="Detalle (ej: Almuerzo)" 
+                  value={txDesc} 
+                  onChange={e => setTxDesc(e.target.value)} 
+                  onBlur={handleSuggestCategory}
+                />
               </div>
 
               <button type="submit" className="btn-primary" style={{ marginTop: '4px' }}>Cargar Movimiento</button>

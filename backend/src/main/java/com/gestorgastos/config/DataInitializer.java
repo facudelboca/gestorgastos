@@ -2,16 +2,14 @@ package com.gestorgastos.config;
 
 import com.gestorgastos.model.*;
 import com.gestorgastos.repository.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -183,6 +181,51 @@ public class DataInitializer implements CommandLineRunner {
                 .description("Entradas de Cine Hoyts")
                 .transactionDate(now.minusDays(2))
                 .build());
+
+        // Sembrar transacciones históricas de los últimos 5 meses (para el gráfico comparativo)
+        for (int i = 1; i <= 5; i++) {
+            OffsetDateTime monthDate = now.minusMonths(i);
+            
+            // Ingreso de sueldo histórico
+            transactionRepository.save(Transaction.builder()
+                    .account(galicia)
+                    .category(trabajo)
+                    .amount(BigDecimal.valueOf(240000.00 - (i * 10000)))
+                    .type(TransactionType.INCOME)
+                    .description("Cobro de Sueldo Mensual")
+                    .transactionDate(monthDate.withDayOfMonth(5).withHour(10).withMinute(0))
+                    .build());
+
+            // Egreso de supermercado histórico
+            transactionRepository.save(Transaction.builder()
+                    .account(galicia)
+                    .category(comida)
+                    .amount(BigDecimal.valueOf(45000.00 + (i * 2000)))
+                    .type(TransactionType.EXPENSE)
+                    .description("Supermercado Coto Histórico")
+                    .transactionDate(monthDate.withDayOfMonth(12).withHour(15).withMinute(30))
+                    .build());
+
+            // Egreso de servicios histórico
+            transactionRepository.save(Transaction.builder()
+                    .account(galicia)
+                    .category(servicios)
+                    .amount(BigDecimal.valueOf(18000.00 - (i * 500)))
+                    .type(TransactionType.EXPENSE)
+                    .description("Factura de Servicios Histórica")
+                    .transactionDate(monthDate.withDayOfMonth(18).withHour(9).withMinute(15))
+                    .build());
+            
+            // Egreso de ocio histórico
+            transactionRepository.save(Transaction.builder()
+                    .account(galicia)
+                    .category(ocio)
+                    .amount(BigDecimal.valueOf(12000.00 + (i * 1000)))
+                    .type(TransactionType.EXPENSE)
+                    .description("Salida de Fin de Semana Histórica")
+                    .transactionDate(monthDate.withDayOfMonth(25).withHour(21).withMinute(0))
+                    .build());
+        }
 
         // 6. Registrar Transferencias Realizadas
         transferRepository.save(Transfer.builder()

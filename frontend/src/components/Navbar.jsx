@@ -30,6 +30,12 @@ export default function Navbar({ activeTab, setActiveTab }) {
             Operaciones
           </button>
           <button 
+            onClick={() => setActiveTab('STATS')} 
+            className={`nav-tab-button ${activeTab === 'STATS' ? 'active' : ''}`}
+          >
+            Estadísticas
+          </button>
+          <button 
             onClick={() => setActiveTab('CONFIG')} 
             className={`nav-tab-button ${activeTab === 'CONFIG' ? 'active' : ''}`}
           >
