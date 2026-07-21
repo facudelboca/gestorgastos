@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080/api';
 
 const getHeaders = () => {
   const token = localStorage.getItem('token');
@@ -190,6 +190,16 @@ export const api = {
       const res = await fetch(url, { headers: getHeaders() });
       if (!res.ok) throw new Error('Error al generar gráfico de tendencias');
       return res.json();
+    },
+    downloadPdf: async () => {
+      const res = await fetch(`${API_BASE}/reports/export/pdf`, { headers: getHeaders() });
+      if (!res.ok) throw new Error('Error al descargar PDF');
+      return res.blob();
+    },
+    downloadCsv: async () => {
+      const res = await fetch(`${API_BASE}/reports/export/csv`, { headers: getHeaders() });
+      if (!res.ok) throw new Error('Error al descargar CSV');
+      return res.blob();
     }
   }
 };

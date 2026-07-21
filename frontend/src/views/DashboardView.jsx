@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 
 export default function DashboardView() {
@@ -12,8 +12,6 @@ export default function DashboardView() {
   const [reportType, setReportType] = useState('EXPENSE');
   const [reportStart, setReportStart] = useState('');
   const [reportEnd, setReportEnd] = useState('');
-
-
 
   // Form states
   const [txAccount, setTxAccount] = useState('');
@@ -37,18 +35,18 @@ export default function DashboardView() {
     }
   };
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       const accData = await api.accounts.getAccounts();
       setAccounts(accData);
-      if (accData.length > 0 && !txAccount) {
-        setTxAccount(accData[0].id);
+      if (accData.length > 0) {
+        setTxAccount(prev => prev || accData[0].id);
       }
 
       const catData = await api.categories.getCategories();
       setCategories(catData);
-      if (catData.length > 0 && !txCategory) {
-        setTxCategory(catData[0].id);
+      if (catData.length > 0) {
+        setTxCategory(prev => prev || catData[0].id);
       }
 
       const recentData = await api.transactions.getTransactions({ page: 0, size: 5 });
@@ -61,16 +59,14 @@ export default function DashboardView() {
         reportType
       );
       setReport(repData);
-
-
     } catch (err) {
       console.error('Error al cargar datos del dashboard', err);
     }
-  };
+  }, [reportCurrency, reportStart, reportEnd, reportType]);
 
   useEffect(() => {
     fetchDashboardData();
-  }, [reportCurrency, reportStart, reportEnd, reportType]);
+  }, [fetchDashboardData]);
 
   const handleCreateTransaction = async (e) => {
     e.preventDefault();
@@ -101,8 +97,6 @@ export default function DashboardView() {
       setTxAlert({ type: 'danger', message: err.message });
     }
   };
-
-
 
   return (
     <div className="grid-cols-2 animate-fade-in">
@@ -191,8 +185,6 @@ export default function DashboardView() {
             </div>
           )}
         </div>
-
-
 
       </div>
 

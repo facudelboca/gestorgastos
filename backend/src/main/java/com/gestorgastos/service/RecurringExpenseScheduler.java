@@ -22,10 +22,6 @@ public class RecurringExpenseScheduler {
     private final TransactionService transactionService;
     private final SseNotificationService sseNotificationService;
 
-    /**
-     * Se ejecuta todas las madrugadas a las 04:00 AM.
-     * Procesa todos los cobros recurrentes que estén vencidos a la fecha de hoy.
-     */
     @Scheduled(cron = "0 0 4 * * *")
     public void processRecurringExpenses() {
         log.info("Iniciando ejecución del motor de cobros recurrentes...");
@@ -37,15 +33,11 @@ public class RecurringExpenseScheduler {
 
         for (RecurringExpense expense : overdueExpenses) {
             try {
-                // Procesamos cada cobro en una transacción aislada llamando al método helper del scheduler
-                // para que un fallo individual no impida la ejecución de los demás cobros.
                 executeSingleRecurringExpense(expense);
             } catch (Exception e) {
-                // MANEJO DE EXCEPCIONES DE DEBITO (ej: Cuenta sin saldo, cuenta eliminada, etc.)
                 log.error("FALLO en débito automático de Suscripción ID: {} - Cuenta ID: {} - Motivo: {}", 
                         expense.getId(), expense.getAccount().getId(), e.getMessage(), e);
                 
-                // Emitir notificación SSE en tiempo real para alertar al usuario (Épica 7)
                 try {
                     String msg = "El débito automático de '" + expense.getDescription() + "' (" + expense.getAmount() + " " + expense.getAccount().getCurrency() + ") falló en la cuenta '" + expense.getAccount().getName() + "'. Motivo: " + e.getMessage();
                     sseNotificationService.sendNotification(expense.getUser().getId(), msg);
@@ -53,7 +45,6 @@ public class RecurringExpenseScheduler {
                     log.error("Error al enviar notificación SSE por fallo de cobro", notifyEx);
                 }
 
-                // reprogramar
                 try {
                     expense.setNextExecutionDate(expense.getNextExecutionDate().plusMonths(1));
                     recurringExpenseRepository.save(expense);
@@ -67,30 +58,22 @@ public class RecurringExpenseScheduler {
         log.info("Finalizó la ejecución del motor de cobros recurrentes.");
     }
 
-    /**
-     * Ejecuta un cobro individual de forma transaccional.
-     * Si la cuenta no posee fondos suficientes o la categoría no existe, la transacción
-     * de este cobro se revierte completamente (rollback) sin afectar a los demás.
-     */
     @Transactional
     public void executeSingleRecurringExpense(RecurringExpense expense) {
         log.info("Procesando débito automático para la suscripción ID: {} - Monto: {}", 
                 expense.getId(), expense.getAmount());
 
-        // Adaptamos el RecurringExpense al DTO de creación de transacciones
         CreateTransactionRequest request = new CreateTransactionRequest(
                 expense.getAccount().getId(),
                 expense.getCategory().getId(),
                 expense.getAmount(),
                 TransactionType.EXPENSE,
                 "[Débito Automático] " + expense.getDescription(),
-                OffsetDateTime.now() // fecha de cobro actual
+                OffsetDateTime.now()
         );
 
-        // Se invoca al TransactionService (que ya corre bajo su propio @Transactional)
         transactionService.createTransaction(expense.getUser().getId(), request);
 
-        // Si se debitó correctamente, actualizamos la fecha de próxima ejecución (+1 mes)
         expense.setNextExecutionDate(expense.getNextExecutionDate().plusMonths(1));
         recurringExpenseRepository.save(expense);
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 
 export default function ConfigView() {
@@ -35,19 +35,19 @@ export default function ConfigView() {
   const [newCatName, setNewCatName] = useState('');
   const [newCatIcon, setNewCatIcon] = useState('');
 
-  const fetchConfigData = async () => {
+  const fetchConfigData = useCallback(async () => {
     try {
       const catData = await api.categories.getCategories();
       setCategories(catData);
       if (catData.length > 0) {
-        if (!newBudgetCategory) setNewBudgetCategory(catData[0].id);
-        if (!newRecCat) setNewRecCat(catData[0].id);
+        setNewBudgetCategory(prev => prev || catData[0].id);
+        setNewRecCat(prev => prev || catData[0].id);
       }
 
       const accData = await api.accounts.getAccounts();
       setAccounts(accData);
       if (accData.length > 0) {
-        if (!newRecAcc) setNewRecAcc(accData[0].id);
+        setNewRecAcc(prev => prev || accData[0].id);
       }
 
       const budData = await api.budgets.getBudgets();
@@ -58,11 +58,11 @@ export default function ConfigView() {
     } catch (err) {
       console.error(err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchConfigData();
-  }, []);
+  }, [fetchConfigData]);
 
   const handleCreateAccount = async (e) => {
     e.preventDefault();

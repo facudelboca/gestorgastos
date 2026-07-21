@@ -39,7 +39,6 @@ public class TransferService {
         Account destinationAccount = accountRepository.findById(request.destinationAccountId())
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró la cuenta destino con ID: " + request.destinationAccountId()));
 
-        // Validar que las cuentas pertenezcan al usuario
         if (!sourceAccount.getUser().getId().equals(userId)) {
             throw new BusinessException("La cuenta origen no pertenece al usuario autenticado");
         }
@@ -47,12 +46,10 @@ public class TransferService {
             throw new BusinessException("La cuenta destino no pertenece al usuario autenticado");
         }
 
-        // Validar que la cuenta origen tenga fondos suficientes
         if (sourceAccount.getBalance().compareTo(request.amount()) < 0) {
             throw new BusinessException("Saldo insuficiente en la cuenta origen para realizar la transferencia");
         }
 
-        // Realizar traspaso de fondos con conversión dinámica si difieren de moneda
         BigDecimal creditAmount = request.amount();
         if (!sourceAccount.getCurrency().equalsIgnoreCase(destinationAccount.getCurrency())) {
             creditAmount = exchangeRateService.convert(

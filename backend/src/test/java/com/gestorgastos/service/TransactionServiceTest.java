@@ -6,11 +6,11 @@ import static org.mockito.Mockito.*;
 
 import com.gestorgastos.dto.CreateTransactionRequest;
 import com.gestorgastos.dto.TransactionResponse;
+import com.gestorgastos.event.TransactionCreatedEvent;
 import com.gestorgastos.exception.BusinessException;
 import com.gestorgastos.exception.ResourceNotFoundException;
 import com.gestorgastos.model.*;
 import com.gestorgastos.repository.AccountRepository;
-import com.gestorgastos.repository.BudgetRepository;
 import com.gestorgastos.repository.CategoryRepository;
 import com.gestorgastos.repository.TransactionRepository;
 import java.math.BigDecimal;
@@ -21,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 public class TransactionServiceTest {
@@ -32,7 +33,7 @@ public class TransactionServiceTest {
     @Mock
     private CategoryRepository categoryRepository;
     @Mock
-    private BudgetRepository budgetRepository;
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private TransactionService transactionService;
@@ -70,7 +71,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCreateTransaction_successIncome_shouldIncreaseBalance() {
+    public void testCreateTransaction_successIncome_shouldIncreaseBalanceAndPublishEvent() {
         CreateTransactionRequest request = new CreateTransactionRequest(
                 1L, 1L, BigDecimal.valueOf(100), TransactionType.INCOME, "Sueldo", OffsetDateTime.now()
         );
@@ -103,10 +104,11 @@ public class TransactionServiceTest {
 
         verify(accountRepository, times(1)).save(account);
         verify(transactionRepository, times(1)).save(any(Transaction.class));
+        verify(eventPublisher, times(1)).publishEvent(any(TransactionCreatedEvent.class));
     }
 
     @Test
-    public void testCreateTransaction_successExpense_shouldDecreaseBalanceAndCheckBudget() {
+    public void testCreateTransaction_successExpense_shouldDecreaseBalanceAndPublishEvent() {
         CreateTransactionRequest request = new CreateTransactionRequest(
                 1L, 1L, BigDecimal.valueOf(150), TransactionType.EXPENSE, "Cena", OffsetDateTime.now()
         );
@@ -114,7 +116,6 @@ public class TransactionServiceTest {
         User user = User.builder().id(1L).email("user@test.com").build();
         Account account = Account.builder().id(1L).user(user).name("Banco").balance(BigDecimal.valueOf(500)).currency("ARS").build();
         Category category = Category.builder().id(1L).name("Comida").build();
-        Budget budget = Budget.builder().id(5L).user(user).category(category).limitAmount(BigDecimal.valueOf(200)).monthPeriod(202607).build();
 
         Transaction savedTransaction = Transaction.builder()
                 .id(10L)
@@ -128,20 +129,16 @@ public class TransactionServiceTest {
 
         when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-        when(budgetRepository.findByUserIdAndCategoryIdAndMonthPeriod(eq(1L), eq(1L), anyInt()))
-                .thenReturn(Optional.of(budget));
-        // Gasto actual del mes en la base es 100. Con los nuevos 150 suma 250, superando el límite de 200.
-        when(transactionRepository.sumAmountByUserIdAndCategoryIdAndTypeAndDateRange(eq(1L), eq(1L), eq(TransactionType.EXPENSE), any(), any()))
-                .thenReturn(BigDecimal.valueOf(100));
         when(transactionRepository.save(any(Transaction.class))).thenReturn(savedTransaction);
 
         TransactionResponse response = transactionService.createTransaction(1L, request);
 
         assertNotNull(response);
         assertEquals(BigDecimal.valueOf(350), account.getBalance()); // 500 - 150
-        assertTrue(response.budgetExceeded()); // Supera el límite de 200
+        assertFalse(response.budgetExceeded());
 
         verify(accountRepository, times(1)).save(account);
         verify(transactionRepository, times(1)).save(any(Transaction.class));
+        verify(eventPublisher, times(1)).publishEvent(any(TransactionCreatedEvent.class));
     }
 }

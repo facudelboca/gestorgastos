@@ -20,7 +20,6 @@ public class ExchangeRateService {
     private Map<String, BigDecimal> ratesCache = new HashMap<>();
     private Instant lastFetched = null;
 
-    // Tasas fijas de respaldo (fallback) por si la API externa está caída o no hay internet
     private static final Map<String, BigDecimal> FALLBACK_RATES = Map.of(
             "USD", BigDecimal.ONE,
             "ARS", BigDecimal.valueOf(920.00),
@@ -37,7 +36,6 @@ public class ExchangeRateService {
 
     private synchronized void updateRatesIfNeeded() {
         Instant now = Instant.now();
-        // Si no se han cargado las tasas o han pasado más de 12 horas, actualizamos
         if (lastFetched == null || ChronoUnit.HOURS.between(lastFetched, now) >= 12) {
             try {
                 log.info("Actualizando tasas de conversión desde API externa: {}", API_URL);
@@ -75,9 +73,6 @@ public class ExchangeRateService {
         return rate;
     }
 
-    /**
-     * Convierte un monto de una divisa origen a otra destino.
-     */
     public BigDecimal convert(BigDecimal amount, String from, String to) {
         if (amount == null) return BigDecimal.ZERO;
         if (from.equalsIgnoreCase(to)) return amount;
@@ -85,9 +80,7 @@ public class ExchangeRateService {
         BigDecimal fromRate = getRate(from);
         BigDecimal toRate = getRate(to);
 
-        // Convertir monto a USD: USD = amount / rate(from)
         BigDecimal amountInUsd = amount.divide(fromRate, 8, RoundingMode.HALF_UP);
-        // Convertir USD a destino: destino = USD * rate(to)
         return amountInUsd.multiply(toRate).setScale(4, RoundingMode.HALF_UP);
     }
 }

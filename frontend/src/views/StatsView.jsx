@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 
 export default function StatsView() {
@@ -15,9 +15,8 @@ export default function StatsView() {
   const [lineVisibility, setLineVisibility] = useState('BOTH'); // BOTH, INCOME, EXPENSE
   const [hovered, setHovered] = useState(null); // { month, type, value }
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
-      // Validate custom dates if custom period is selected
       if (period === 'CUSTOM' && (!customStart || !customEnd)) {
         return; 
       }
@@ -26,11 +25,11 @@ export default function StatsView() {
     } catch (err) {
       console.error('Error al obtener datos históricos', err);
     }
-  };
+  }, [currency, period, customStart, customEnd]);
 
   useEffect(() => {
     fetchStats();
-  }, [currency, period, customStart, customEnd]);
+  }, [fetchStats]);
 
   // Summarized metrics
   const totalIncome = trendData.reduce((sum, d) => sum + d.income, 0);

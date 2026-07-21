@@ -4,7 +4,11 @@ import com.gestorgastos.dto.CategoryReportDto;
 import com.gestorgastos.dto.TrendResponse;
 import com.gestorgastos.model.TransactionType;
 import com.gestorgastos.model.User;
+import com.gestorgastos.service.ExportService;
 import com.gestorgastos.service.ReportService;
+import com.lowagie.text.DocumentException;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReportController {
 
     private final ReportService reportService;
+    private final ExportService exportService;
 
     @GetMapping("/monthly")
     public ResponseEntity<List<CategoryReportDto>> getMonthlyReport(
@@ -49,5 +54,21 @@ public class ReportController {
                 user.getId(), currency, period, customStart, customEnd
         );
         return ResponseEntity.ok(report);
+    }
+
+    @GetMapping("/export/pdf")
+    public void exportToPdf(@AuthenticationPrincipal User user, HttpServletResponse response) 
+            throws IOException, DocumentException {
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=\"reporte_transacciones.pdf\"");
+        exportService.exportToPdf(user.getId(), response.getOutputStream());
+    }
+
+    @GetMapping("/export/csv")
+    public void exportToCsv(@AuthenticationPrincipal User user, HttpServletResponse response) 
+            throws IOException {
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=\"reporte_transacciones.csv\"");
+        exportService.exportToCsv(user.getId(), response.getWriter());
     }
 }

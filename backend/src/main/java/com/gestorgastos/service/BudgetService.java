@@ -30,7 +30,6 @@ public class BudgetService {
         Category category = categoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró la categoría con ID: " + request.categoryId()));
 
-        // Upsert logic: Si existe, se actualiza el límite; si no, se crea uno nuevo
         Budget budget = budgetRepository.findByUserIdAndCategoryIdAndMonthPeriod(userId, request.categoryId(), request.monthPeriod())
                 .orElse(null);
 

@@ -68,18 +68,15 @@ public class SavingsGoalService {
             throw new BusinessException("La cuenta física elegida no pertenece al usuario autenticado");
         }
 
-        // Verificar saldo suficiente
         if (account.getBalance().compareTo(request.amount()) < 0) {
             throw new BusinessException("Saldo insuficiente en la cuenta para destinar a la meta de ahorro");
         }
 
-        // Restar saldo de la cuenta y agregarlo a la meta
         account.setBalance(account.getBalance().subtract(request.amount()));
         accountRepository.save(account);
 
         goal.setCurrentAmount(goal.getCurrentAmount().add(request.amount()));
 
-        // Validar si se alcanzó la meta
         if (goal.getCurrentAmount().compareTo(goal.getTargetAmount()) >= 0) {
             goal.setStatus(SavingsGoalStatus.COMPLETED);
         }

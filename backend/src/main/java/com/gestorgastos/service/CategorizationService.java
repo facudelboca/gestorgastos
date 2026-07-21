@@ -16,7 +16,6 @@ public class CategorizationService {
     private final CategoryRepository categoryRepository;
     private final TransactionRepository transactionRepository;
 
-    // Mapa estático de palabras clave asociadas a nombres conceptuales de categorías
     private static final Map<String, List<String>> KEYWORDS_MAP = new HashMap<>();
 
     static {
@@ -33,7 +32,6 @@ public class CategorizationService {
             return Optional.empty();
         }
 
-        // Obtener categorías creadas o asociadas al usuario
         List<Category> userCategories = categoryRepository.findByUserId(userId);
         if (userCategories.isEmpty()) {
             return Optional.empty();
@@ -41,21 +39,18 @@ public class CategorizationService {
 
         String inputLower = description.toLowerCase().trim();
 
-        // 1. EVALUAR POR PALABRAS CLAVE PREDEFINIDAS (Jaro-Winkler)
         double bestKeywordScore = 0.0;
         String suggestedCategoryName = null;
 
         for (Map.Entry<String, List<String>> entry : KEYWORDS_MAP.entrySet()) {
             String categoryGroup = entry.getKey();
             for (String keyword : entry.getValue()) {
-                // Si la descripción contiene la palabra directamente, asignamos puntaje máximo
                 if (inputLower.contains(keyword)) {
                     bestKeywordScore = 1.0;
                     suggestedCategoryName = categoryGroup;
                     break;
                 }
                 
-                // Si no, calculamos similitud por token o palabra completa
                 double score = SimilarityUtils.jaroWinkler(inputLower, keyword);
                 if (score > bestKeywordScore) {
                     bestKeywordScore = score;
@@ -65,7 +60,6 @@ public class CategorizationService {
             if (bestKeywordScore == 1.0) break;
         }
 
-        // Si superamos un umbral estricto (0.82) por palabras clave, mapeamos a una categoría del usuario
         if (bestKeywordScore >= 0.82 && suggestedCategoryName != null) {
             String targetName = suggestedCategoryName;
             Optional<Category> matchedCat = userCategories.stream()
@@ -76,8 +70,6 @@ public class CategorizationService {
             }
         }
 
-        // 2. APRENDIZAJE POR HISTORIAL DE TRANSACCIONES DEL USUARIO
-        // Buscamos transacciones del usuario y comparamos conceptos pasados
         List<Transaction> pastTransactions = transactionRepository.findByAccountUserIdAndTypeAndTransactionDateBetween(
                 userId,
                 com.gestorgastos.model.TransactionType.EXPENSE,
@@ -98,12 +90,10 @@ public class CategorizationService {
             }
         }
 
-        // Si encontramos una coincidencia histórica fuerte (>= 0.85), la sugerimos
         if (bestHistoryScore >= 0.85 && historyCategorySuggestion != null) {
             return Optional.of(historyCategorySuggestion);
         }
 
-        // 3. FALLBACK: Si no hay alta coincidencia, sugerimos la primera categoría disponible
         return Optional.of(userCategories.get(0));
     }
 }

@@ -18,7 +18,6 @@ function AppContent() {
   useEffect(() => {
     if (!token) return;
 
-    // Conectar a Server-Sent Events de notificaciones en tiempo real (Épica 7)
     const es = new EventSource(`http://localhost:8080/api/notifications/subscribe?token=${token}`);
 
     es.addEventListener('NOTIFICATION', (e) => {
@@ -34,7 +33,6 @@ function AppContent() {
     };
   }, [token]);
 
-  // Cerrar toast tras 10 segundos automáticamente
   useEffect(() => {
     if (toast) {
       const timer = setTimeout(() => setToast(null), 10000);
@@ -54,7 +52,6 @@ function AppContent() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-primary)' }}>
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
       
-      {/* Toast Flotante para Notificaciones en Tiempo Real (SSE) */}
       {toast && (
         <div style={{
           position: 'fixed',

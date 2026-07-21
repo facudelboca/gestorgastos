@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 
 export default function OperationsView() {
@@ -18,29 +18,29 @@ export default function OperationsView() {
   const [allocateAmount, setAllocateAmount] = useState('');
   const [goalAllocSuccess, setGoalAllocSuccess] = useState(null);
 
-  const fetchOperationsData = async () => {
+  const fetchOperationsData = useCallback(async () => {
     try {
       const accData = await api.accounts.getAccounts();
       setAccounts(accData);
       if (accData.length > 0) {
-        if (!newTransferSource) setNewTransferSource(accData[0].id);
-        if (!newTransferDest) setNewTransferDest(accData[0].id);
-        if (!allocateAccountId) setAllocateAccountId(accData[0].id);
+        setNewTransferSource(prev => prev || accData[0].id);
+        setNewTransferDest(prev => prev || accData[0].id);
+        setAllocateAccountId(prev => prev || accData[0].id);
       }
 
       const goalsData = await api.savings.getSavingsGoals();
       setSavingsGoals(goalsData);
-      if (goalsData.length > 0 && !allocateGoalId) {
-        setAllocateGoalId(goalsData[0].id);
+      if (goalsData.length > 0) {
+        setAllocateGoalId(prev => prev || goalsData[0].id);
       }
     } catch (err) {
       console.error(err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchOperationsData();
-  }, []);
+  }, [fetchOperationsData]);
 
   const handleCreateTransfer = async (e) => {
     e.preventDefault();

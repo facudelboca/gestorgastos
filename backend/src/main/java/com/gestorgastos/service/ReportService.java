@@ -44,7 +44,6 @@ public class ReportService {
                 ? endDate.withHour(23).withMinute(59).withSecond(59).withNano(999999999) 
                 : defaultEnd;
 
-        // Obtener transacciones según tipo y rango de fechas
         List<Transaction> transactions = transactionRepository.findByAccountUserIdAndTypeAndTransactionDateBetween(
                 userId,
                 transactionType,
@@ -52,7 +51,6 @@ public class ReportService {
                 end
         );
 
-        // Agrupar en memoria convirtiendo a la divisa unificada base
         Map<Long, String> categoryNames = new HashMap<>();
         Map<Long, BigDecimal> categorySums = new HashMap<>();
         BigDecimal totalSpentOverall = BigDecimal.ZERO;
@@ -61,7 +59,6 @@ public class ReportService {
             Category cat = t.getCategory();
             String currency = t.getAccount().getCurrency();
             
-            // Convertir monto a la divisa base del reporte
             BigDecimal amountInBase = exchangeRateService.convert(t.getAmount(), currency, baseCurrency);
 
             categoryNames.put(cat.getId(), cat.getName());
@@ -86,7 +83,6 @@ public class ReportService {
             report.add(new CategoryReportDto(categoryId, categoryName, totalSpent, percentage));
         }
 
-        // Ordenar de mayor a menor gasto
         report.sort((r1, r2) -> r2.totalSpent().compareTo(r1.totalSpent()));
 
         return report;
@@ -194,7 +190,6 @@ public class ReportService {
             return getHistoryTrendReport(userId, baseCurrency);
         }
 
-        // Procesar sumas cambiarias
         for (int idx = 0; idx < intervals.size(); idx++) {
             OffsetDateTime[] range = intervals.get(idx);
             OffsetDateTime start = range[0];
