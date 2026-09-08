@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.gestorgastos.grpc";
+option java_outer_classname = "TransactionProto";
+
+package com.gestorgastos;
+
+service TransactionGrpcService {
+    rpc GetTransactionsByUser (UserTransactionsRequest) returns (TransactionListResponse);
+    rpc GetTransactionById (TransactionIdRequest) returns (TransactionDetailResponse);
+    rpc CreateTransaction (CreateTransactionRequest) returns (TransactionDetailResponse);
+}
+
+message UserTransactionsRequest {
+    int64 user_id = 1;
+    int32 page = 2;
+    int32 size = 3;
+}
+
+message TransactionIdRequest {
+    int64 transaction_id = 1;
+    int64 user_id = 2;
+}
+
+message CreateTransactionRequest {
+    int64 user_id = 1;
+    int64 account_id = 2;
+    int64 category_id = 3;
+    double amount = 4;
+    string type = 5; // EXPENSE or INCOME
+    string description = 6;
+}
+
+message TransactionDetailResponse {
+    int64 id = 1;
+    double amount = 2;
+    string type = 3;
+    string description = 4;
+    string transaction_date = 5;
+    string category_name = 6;
+    string account_name = 7;
+}
+
+message TransactionListResponse {
+    repeated TransactionDetailResponse transactions = 1;
+    int32 total_count = 2;
+}
