@@ -70,7 +70,12 @@ export default function TransactionsView() {
 
   const handleDownloadCsv = async () => {
     try {
-      const blob = await api.reports.downloadCsv();
+      const blob = await api.reports.downloadCsv({
+        accountId: filterAcc || undefined,
+        categoryId: filterCat || undefined,
+        startDate: filterStart || undefined,
+        endDate: filterEnd || undefined
+      });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -85,6 +90,28 @@ export default function TransactionsView() {
     }
   };
 
+  const handleDownloadExcel = async () => {
+    try {
+      const blob = await api.reports.downloadExcel({
+        accountId: filterAcc || undefined,
+        categoryId: filterCat || undefined,
+        startDate: filterStart || undefined,
+        endDate: filterEnd || undefined
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'reporte_transacciones.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error al descargar Excel:', err);
+      alert('Error al descargar el Excel de transacciones');
+    }
+  };
+
   return (
     <div className="glass-card animate-fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px', marginBottom: '20px' }}>
@@ -93,11 +120,11 @@ export default function TransactionsView() {
         </h2>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button 
-            onClick={handleDownloadPdf} 
+            onClick={handleDownloadExcel} 
             className="btn-secondary" 
             style={{ padding: '6px 12px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
           >
-            📄 PDF
+            📗 Excel
           </button>
           <button 
             onClick={handleDownloadCsv} 
@@ -105,6 +132,13 @@ export default function TransactionsView() {
             style={{ padding: '6px 12px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
           >
             📊 CSV
+          </button>
+          <button 
+            onClick={handleDownloadPdf} 
+            className="btn-secondary" 
+            style={{ padding: '6px 12px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+          >
+            📄 PDF
           </button>
         </div>
       </div>
