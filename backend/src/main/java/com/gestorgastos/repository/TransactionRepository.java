@@ -18,8 +18,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     @Query("SELECT t FROM Transaction t WHERE " +
            "(:accountId IS NULL OR t.account.id = :accountId) AND " +
            "(:categoryId IS NULL OR t.category.id = :categoryId) AND " +
-           "(coalesce(:startDate, null) IS NULL OR t.transactionDate >= :startDate) AND " +
-           "(coalesce(:endDate, null) IS NULL OR t.transactionDate <= :endDate)")
+           "(:startDate IS NULL OR t.transactionDate >= :startDate) AND " +
+           "(:endDate IS NULL OR t.transactionDate <= :endDate)")
     Page<Transaction> findFiltered(
             @Param("accountId") Long accountId,
             @Param("categoryId") Long categoryId,
@@ -64,4 +64,21 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     );
 
     List<Transaction> findByAccountUserIdOrderByTransactionDateDesc(Long userId);
+
+    @Query("SELECT t FROM Transaction t WHERE " +
+           "t.account.user.id = :userId AND " +
+           "(:accountId IS NULL OR t.account.id = :accountId) AND " +
+           "(:categoryId IS NULL OR t.category.id = :categoryId) AND " +
+           "(:type IS NULL OR t.type = :type) AND " +
+           "(:startDate IS NULL OR t.transactionDate >= :startDate) AND " +
+           "(:endDate IS NULL OR t.transactionDate <= :endDate) " +
+           "ORDER BY t.transactionDate DESC")
+    List<Transaction> findUserTransactionsFiltered(
+            @Param("userId") Long userId,
+            @Param("accountId") Long accountId,
+            @Param("categoryId") Long categoryId,
+            @Param("type") TransactionType type,
+            @Param("startDate") OffsetDateTime startDate,
+            @Param("endDate") OffsetDateTime endDate
+    );
 }

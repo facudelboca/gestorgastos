@@ -87,6 +87,36 @@ export default function StatsView() {
               <option value="EUR">Euros (EUR)</option>
             </select>
           </div>
+
+          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+            <button 
+              onClick={async () => {
+                try {
+                  const blob = await api.reports.downloadTrendExcel({
+                    currency,
+                    period,
+                    customStart: customStart || undefined,
+                    customEnd: customEnd || undefined
+                  });
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `reporte_evolucion_${period.toLowerCase()}_${currency.toLowerCase()}.xlsx`;
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  window.URL.revokeObjectURL(url);
+                } catch (err) {
+                  console.error('Error al descargar reporte de tendencias', err);
+                  alert('Error al descargar el Excel de tendencias');
+                }
+              }}
+              className="btn-secondary" 
+              style={{ padding: '6px 14px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', height: '34px' }}
+            >
+              📗 Exportar Excel
+            </button>
+          </div>
         </div>
       </div>
 

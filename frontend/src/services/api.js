@@ -196,9 +196,47 @@ export const api = {
       if (!res.ok) throw new Error('Error al descargar PDF');
       return res.blob();
     },
-    downloadCsv: async () => {
-      const res = await fetch(`${API_BASE}/reports/export/csv`, { headers: getHeaders() });
+    downloadCsv: async ({ accountId, categoryId, type, startDate, endDate } = {}) => {
+      let url = `${API_BASE}/reports/export/csv?`;
+      if (accountId) url += `&accountId=${accountId}`;
+      if (categoryId) url += `&categoryId=${categoryId}`;
+      if (type) url += `&type=${type}`;
+      if (startDate) url += `&startDate=${new Date(startDate).toISOString()}`;
+      if (endDate) url += `&endDate=${new Date(endDate).toISOString()}`;
+
+      const res = await fetch(url, { headers: getHeaders() });
       if (!res.ok) throw new Error('Error al descargar CSV');
+      return res.blob();
+    },
+    downloadExcel: async ({ accountId, categoryId, type, startDate, endDate } = {}) => {
+      let url = `${API_BASE}/reports/export/excel?`;
+      if (accountId) url += `&accountId=${accountId}`;
+      if (categoryId) url += `&categoryId=${categoryId}`;
+      if (type) url += `&type=${type}`;
+      if (startDate) url += `&startDate=${new Date(startDate).toISOString()}`;
+      if (endDate) url += `&endDate=${new Date(endDate).toISOString()}`;
+
+      const res = await fetch(url, { headers: getHeaders() });
+      if (!res.ok) throw new Error('Error al descargar Excel');
+      return res.blob();
+    },
+    downloadMonthlyExcel: async ({ currency = 'ARS', startDate = '', endDate = '', type = '' } = {}) => {
+      let url = `${API_BASE}/reports/monthly/export/excel?currency=${currency}`;
+      if (startDate) url += `&startDate=${new Date(startDate).toISOString()}`;
+      if (endDate) url += `&endDate=${new Date(endDate).toISOString()}`;
+      if (type) url += `&type=${type}`;
+
+      const res = await fetch(url, { headers: getHeaders() });
+      if (!res.ok) throw new Error('Error al descargar Excel mensual');
+      return res.blob();
+    },
+    downloadTrendExcel: async ({ currency = 'ARS', period = '6_MONTHS', customStart = '', customEnd = '' } = {}) => {
+      let url = `${API_BASE}/reports/trend/export/excel?currency=${currency}&period=${period}`;
+      if (customStart) url += `&customStart=${new Date(customStart).toISOString()}`;
+      if (customEnd) url += `&customEnd=${new Date(customEnd).toISOString()}`;
+
+      const res = await fetch(url, { headers: getHeaders() });
+      if (!res.ok) throw new Error('Error al descargar Excel de tendencias');
       return res.blob();
     }
   }
